@@ -1,0 +1,206 @@
+import { ElementRef, Injectable } from '@angular/core';
+import {
+  AmbientLight,
+  Camera,
+  DirectionalLight,
+  GridHelper,
+  MeshLambertMaterial,
+  PerspectiveCamera,
+  Raycaster,
+  Scene,
+  Vector2,
+  WebGLRenderer,
+} from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { IFCLoader } from 'web-ifc-three';
+import { IFCNode } from './models/ifc-node';
+import { SpatialStructUtils } from './spatial-struct-utils';
+
+@Injectable({ providedIn: 'root' })
+export class IFCService {
+  private wasmPath = '/assets/ifc/';
+  private canvas: any;
+  private scene: Scene;
+  private ifcLoader: IFCLoader;
+  private ifcModels: any[] = [];
+  private subsets: any = {};
+  private raycaster: Raycaster;
+  private camera: Camera;
+
+  selectMat = new MeshLambertMaterial({
+    transparent: true,
+    opacity: 0.6,
+    color: 0xff00ff,
+    depthTest: false,
+  });
+
+  constructor(private spatialUtils: SpatialStructUtils) {
+    this.ifcLoader = new IFCLoader();
+    this.ifcLoader.ifcManager.setWasmPath(this.wasmPath);
+  }
+
+  init(canvas: ElementRef): void {
+    this.canvas = canvas;
+    this.initScene();
+  }
+
+  async reset() {
+    if (this.ifcLoader) {
+      this.ifcLoader.ifcManager.dispose();
+      this.ifcLoader = null;
+      this.ifcModels = [];
+      this.ifcLoader = new IFCLoader();
+      this.ifcLoader.ifcManager.setWasmPath(this.wasmPath);
+    }
+  }
+
+  initScene(): void {
+    //Creates the Three.js scene
+    this.scene = new Scene();
+
+    //Object to store the size of the viewport
+    const size = {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+
+    //Creates the camera (point of view of the user)
+    this.camera = new PerspectiveCamera(75, size.width / size.height);
+    this.camera.position.z = 15;
+    this.camera.position.y = 13;
+    this.camera.position.x = 8;
+
+    //Creates the lights of the scene
+    const lightColor = 0xffffff;
+
+    const ambientLight = new AmbientLight(lightColor, 0.5);
+    this.scene.add(ambientLight);
+
+    const directionalLight = new DirectionalLight(lightColor, 1);
+    directionalLight.position.set(0, 10, 0);
+    directionalLight.target.position.set(-5, 0, 0);
+    this.scene.add(directionalLight);
+    this.scene.add(directionalLight.target);
+
+    //Sets up the renderer, fetching the canvas of the HTML
+    const threeCanvas = this.canvas.nativeElement;
+    const renderer = new WebGLRenderer({ canvas: threeCanvas, alpha: true });
+    // renderer.setSize(size.width, size.height);
+    const rect = threeCanvas.getBoundingClientRect();
+    renderer.setSize(rect.width, rect.height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    //Creates grids and axes in the scene
+    const grid = new GridHelper(50, 30);
+    this.scene.add(grid);
+
+    //Creates the orbit controls (to navigate the scene)
+    const controls = new OrbitControls(this.camera, threeCanvas);
+    controls.enableDamping = true;
+    controls.target.set(-2, 0, 0);
+
+    //Animation loop
+    const animate = () => {
+      controls.update();
+      renderer.render(this.scene, this.camera);
+      requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    this.raycaster = new Raycaster();
+    this.raycaster.firstHitOnly = true;
+  }
+
+  loadFile(file: File) {
+    const fileUrl = URL.createObjectURL(file);
+    this.loadUrl(fileUrl);
+  }
+
+  loadUrl(url: string) {
+    this.ifcLoader.load(url, async (ifcModel) => {
+      this.ifcModels.push(ifcModel);
+
+      //get the spatial structure, organize it by type and load it into the scene
+      const spatialStruct = await this.ifcLoader.ifcManager.getSpatialStructure(
+        0,
+        true
+      );
+      this.spatialUtils.init(spatialStruct);
+      this.initSubsetsByType();
+    });
+  }
+
+  cast(x: number, y: number) {
+    const mouse = new Vector2();
+
+    // Computes the position of the mouse on the screen
+    const bounds = this.canvas.nativeElement.getBoundingClientRect();
+
+    const x1 = x - bounds.left;
+    const x2 = bounds.right - bounds.left;
+    mouse.x = (x1 / x2) * 2 - 1;
+
+    const y1 = y - bounds.top;
+    const y2 = bounds.bottom - bounds.top;
+    mouse.y = -(y1 / y2) * 2 + 1;
+
+    // Places it on the camera pointing to the mouse
+    this.raycaster.setFromCamera(mouse, this.camera);
+
+    // Casts a ray
+    return this.raycaster.intersectObjects(this.ifcModels);
+  }
+
+  highlight(x: number, y: number) {
+    const found: any = this.cast(x, y)[0];
+    if (found) {
+      // Gets Express ID
+      const index = found.faceIndex;
+      const geometry = found.object.geometry;
+      const id = this.ifcLoader.ifcManager.getExpressId(geometry, index);
+
+      this.highlightById([id]);
+    } else {
+      this.ifcLoader.ifcManager.removeSubset(
+        0,
+        this.selectMat
+      );
+    }
+  }
+
+  highlightById(expressIDs: number[]) {
+    this.ifcLoader.ifcManager.createSubset({
+      modelID: 0,
+      ids: expressIDs,
+      material: this.selectMat,
+      scene: this.scene,
+      removePrevious: true,
+    });
+  }
+
+  initSubsetsByType() {
+    const byType = this.spatialUtils.getTypes();
+    Object.keys(byType).forEach((type) => {
+      const nodesOfType: IFCNode[] = byType[type];
+      const subsetOfType = this.ifcLoader.ifcManager.createSubset({
+        modelID: 0,
+        ids: nodesOfType.map((n) => n.expressID),
+        scene: this.scene,
+        removePrevious: true,
+        customID: type,
+      });
+      this.subsets[type] = subsetOfType;
+    });
+  }
+
+  hideElementsByType(type: string) {
+    const subset = this.subsets[type];
+    subset.removeFromParent();
+  }
+
+  showElementsByType(type: string) {
+    const subset = this.subsets[type];
+    this.scene.add(subset);
+  }
+}

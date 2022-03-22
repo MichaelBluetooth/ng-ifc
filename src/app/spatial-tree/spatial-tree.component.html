@@ -1,0 +1,28 @@
+<div class="card">
+  <div class="card-header">Structure</div>
+  <div class="card-body">
+
+    <ng-template #spatialStructTmpl let-node="node">
+      <li>
+        <div class="d-flex align-items-center">
+          <span class="clickable d-inline-block text-truncate" style="max-width: 200px;" (click)="select(node)" (contextmenu)="openContextMenu(node, $event)">
+            <i class='bx bx-chevron-down text-truncate'></i>
+            <span *ngIf="node?.Name?.value">{{node?.Name?.value}}</span>
+            <span *ngIf="!node?.Name?.value">{{node.type}}</span>
+          </span>
+        </div>
+
+        <ng-container *ngIf="!node.collapsed && node.children?.length > 0">
+          <ul class="mt-2" *ngFor="let child of node.children">
+            <ng-container *ngTemplateOutlet="spatialStructTmpl; context: { node: child }"></ng-container>
+          </ul>
+        </ng-container>
+      </li>
+    </ng-template>
+
+    <ul *ngIf="tree$ | async" style="padding: 0">
+      <ng-container *ngTemplateOutlet="spatialStructTmpl; context: { node: tree$ | async }"></ng-container>
+    </ul>
+
+  </div>
+</div>

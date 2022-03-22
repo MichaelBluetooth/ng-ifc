@@ -1,5 +1,6 @@
 import {
   AfterContentInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   OnInit,
@@ -12,6 +13,7 @@ import {
   GridHelper,
   PerspectiveCamera,
   Scene,
+  Vector2,
   WebGLRenderer,
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -29,7 +31,12 @@ import {
   IFCFURNISHINGELEMENT,
   IFCMEMBER,
   IFCPLATE,
+  IFCWALL,
 } from 'web-ifc';
+import { SpatialStructUtils } from '../spatial-struct-utils';
+import { IFCNode } from '../models/ifc-node';
+import { IFCRootNode } from '../models/ifc-root-node';
+import { IFCService } from '../ifc.service';
 
 @Component({
   selector: 'app-ifc-viewer',
@@ -39,73 +46,14 @@ import {
 export class IfcViewerComponent implements AfterContentInit {
   @ViewChild('threeCanvas', { static: true }) canvas: ElementRef;
 
-  scene: Scene;
-  ifcLoader: IFCLoader;
-  ifcModels: any[] = [];
-
-  ngOnInit() {
-    this.ifcLoader = new IFCLoader();
-    this.ifcLoader.ifcManager.setWasmPath('/assets/ifc/');
-  }
+  constructor(private ifc: IFCService) {}
 
   ngAfterContentInit() {
-    this.initScene();
-    this.ifcLoader.load('/assets/ifc/test.ifc', async (ifcModel) => {
-      this.ifcModels.push(ifcModel);
-      this.scene.add(ifcModel);
-    });
+    this.ifc.init(this.canvas);
+    this.ifc.loadUrl('/assets/ifc/Test Building 1.ifc');
   }
 
-  initScene() {
-    //Creates the Three.js scene
-    this.scene = new Scene();
-
-    //Object to store the size of the viewport
-    const size = {
-      width: window.innerWidth,
-      height: window.innerHeight,
-    };
-
-    //Creates the camera (point of view of the user)
-    const camera = new PerspectiveCamera(75, size.width / size.height);
-    camera.position.z = 15;
-    camera.position.y = 13;
-    camera.position.x = 8;
-
-    //Creates the lights of the scene
-    const lightColor = 0xffffff;
-
-    const ambientLight = new AmbientLight(lightColor, 0.5);
-    this.scene.add(ambientLight);
-
-    const directionalLight = new DirectionalLight(lightColor, 1);
-    directionalLight.position.set(0, 10, 0);
-    directionalLight.target.position.set(-5, 0, 0);
-    this.scene.add(directionalLight);
-    this.scene.add(directionalLight.target);
-
-    //Sets up the renderer, fetching the canvas of the HTML
-    const threeCanvas = this.canvas.nativeElement;
-    const renderer = new WebGLRenderer({ canvas: threeCanvas, alpha: true });
-    renderer.setSize(size.width, size.height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    //Creates grids and axes in the scene
-    const grid = new GridHelper(50, 30);
-    this.scene.add(grid);
-
-    //Creates the orbit controls (to navigate the scene)
-    const controls = new OrbitControls(camera, threeCanvas);
-    controls.enableDamping = true;
-    controls.target.set(-2, 0, 0);
-
-    //Animation loop
-    const animate = () => {
-      controls.update();
-      renderer.render(this.scene, camera);
-      requestAnimationFrame(animate);
-    };
-
-    animate();
+  pick(event: any) {
+    this.ifc.highlight(event.clientX, event.clientY);
   }
 }
