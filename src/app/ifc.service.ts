@@ -108,7 +108,7 @@ export class IFCService {
     const renderer = new WebGLRenderer({ canvas: threeCanvas, alpha: true });
     // renderer.setSize(size.width, size.height);
     const rect = threeCanvas.getBoundingClientRect();
-    renderer.setSize(rect.width-45, rect.height);
+    renderer.setSize(rect.width-60, rect.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     //Creates grids and axes in the scene

@@ -54,7 +54,7 @@ export class IfcViewerComponent implements AfterContentInit {
   ngAfterContentInit() {
     this.ifc.init(this.canvas);
     // this.ifc.loadUrl('/assets/ifc/Test Building 1.ifc');
-    this.ifc.loadUrl('/assets/ifc/231110AC11-FZK-Haus-IFC.ifc');
+    // this.ifc.loadUrl('/assets/ifc/231110AC11-FZK-Haus-IFC.ifc');
     // this.ifc.loadUrl('/assets/ifc/301110FJK-Project-Final.ifc');
     // this.ifc.loadUrl('/assets/ifc/301110FZK-Haus-EliteCAD.ifc');
   }

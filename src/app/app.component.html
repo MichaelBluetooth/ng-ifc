@@ -2,11 +2,13 @@
   <div class="card-header d-flex justify-content-between">
     <div>
       <input #fileUpload type="file" class="d-none" (change)="upload()">
-      <button class="btn me-2" (click)="fileUpload.click()"><i class='bx bx-upload'></i> Upload</button>
-      <button class="btn me-2" (click)="reset()"><i class='bx bx-reset'></i> Reset</button>
-      <button class="btn me-2"><i class='bx bx-hide'></i> Hide Selected</button>
-      <button class="btn me-2"><i class='bx bxs-hide'></i> Hide Others</button>
-      <button class="btn me-2"><i class='bx bx-show'></i> Show All</button>
+      <button class="btn me-2" (click)="fileUpload.click()" title="upload an IFC file"><i class='bx bx-upload'></i> Upload</button>
+      <button class="btn me-2" (click)="reset()" title="Reload the IFC file"><i class='bx bx-reset'></i> Reset</button>
+      <button class="btn me-2" (click)="deselectAll()" title="Unselect all elements"><i class='bx bx-undo'></i> Unselect All</button>
+      <button class="btn me-2" (click)="hideSelected()" title="Hide all selected elements"><i class='bx bx-hide'></i> Hide Selected</button>
+      <button class="btn me-2" (click)="hideOthers()" title="Hide all elements not currently selected"><i class='bx bxs-hide'></i> Hide Others</button>
+      <button class="btn me-2" (click)="showAll()" title="Unhide all elements"><i class='bx bx-show'></i> Show All</button>
+      <button class="btn me-2" (click)="generateGridData()"><i class='bx bx-table' ></i> Generate Grid Data</button>
     </div>
   </div>
   <div class="card-body p-0 m-0" style="height: calc(100% - 54px)">

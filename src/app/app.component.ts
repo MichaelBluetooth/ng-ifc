@@ -31,6 +31,22 @@ export class AppComponent {
   }
 
   hideSelected(){
-    
+    alert('TODO: make this button do the thing');
+  }
+
+  hideOthers(){
+    alert('TODO: make this button do the thing');
+  }
+
+  showAll(){
+    alert('TODO: make this button do the thing');
+  }
+
+  generateGridData(){
+    alert('TODO: make this button do the thing');
+  }
+
+  deselectAll(){
+    this.ifc.highlightById([]);
   }
 }
