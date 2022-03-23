@@ -56,4 +56,9 @@ export class SpatialStructUtils {
       this._recurseTree(child, callback);
     });
   }
+
+  clear(){
+    this._byType.next({});
+    this._spatialStruct.next(null);
+  }
 }

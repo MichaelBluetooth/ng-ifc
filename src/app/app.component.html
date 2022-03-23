@@ -1,18 +1,27 @@
 <div class="card h-100">
-  <div class="card-header">
-    Featured
+  <div class="card-header d-flex justify-content-between">
+    <div>
+      <input #fileUpload type="file" class="d-none" (change)="upload()">
+      <button class="btn me-2" (click)="fileUpload.click()"><i class='bx bx-upload'></i> Upload</button>
+      <button class="btn me-2" (click)="reset()"><i class='bx bx-reset'></i> Reset</button>
+      <button class="btn me-2"><i class='bx bx-hide'></i> Hide Selected</button>
+      <button class="btn me-2"><i class='bx bxs-hide'></i> Hide Others</button>
+      <button class="btn me-2"><i class='bx bx-show'></i> Show All</button>
+    </div>
   </div>
-  <div class="card-body p-0 m-0">
+  <div class="card-body p-0 m-0" style="height: calc(100% - 54px)">
     <div class="d-flex h-100">
-      <div style="width: 22%">
-        <div class="overflow-auto" style="height: 20%">
+      <div class="d-flex flex-column h-100" style="width: 25%;">
+        <div style="height: 25%">
           <app-component-types></app-component-types>
         </div>
-        <div class="overflow-auto" style="height: 80%">
+        <div style="height: 75%">
           <app-spatial-tree></app-spatial-tree>
-        </div>        
+        </div>
       </div>
-      <app-ifc-viewer></app-ifc-viewer>
+      <div class="full">
+        <app-ifc-viewer></app-ifc-viewer>
+      </div>
     </div>
   </div>
 </div>

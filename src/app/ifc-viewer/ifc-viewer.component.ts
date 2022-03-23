@@ -3,6 +3,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  HostListener,
   OnInit,
   ViewChild,
 } from '@angular/core';
@@ -46,14 +47,33 @@ import { IFCService } from '../ifc.service';
 export class IfcViewerComponent implements AfterContentInit {
   @ViewChild('threeCanvas', { static: true }) canvas: ElementRef;
 
+  isMulti: boolean = false;
+
   constructor(private ifc: IFCService) {}
 
   ngAfterContentInit() {
     this.ifc.init(this.canvas);
-    this.ifc.loadUrl('/assets/ifc/Test Building 1.ifc');
+    // this.ifc.loadUrl('/assets/ifc/Test Building 1.ifc');
+    this.ifc.loadUrl('/assets/ifc/231110AC11-FZK-Haus-IFC.ifc');
+    // this.ifc.loadUrl('/assets/ifc/301110FJK-Project-Final.ifc');
+    // this.ifc.loadUrl('/assets/ifc/301110FZK-Haus-EliteCAD.ifc');
   }
 
   pick(event: any) {
-    this.ifc.highlight(event.clientX, event.clientY);
+    this.ifc.highlight(event.clientX, event.clientY, this.isMulti);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  shiftdown(evt: any) {
+    if (evt.shiftKey) {
+      this.isMulti = true;
+    }
+  }
+
+  @HostListener('document:keyup', ['$event'])
+  shiftup(evt: any) {
+    if (evt.shiftKey) {
+      this.isMulti = false;
+    }
   }
 }

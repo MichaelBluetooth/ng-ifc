@@ -1,4 +1,5 @@
 import { ElementRef, Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import {
   AmbientLight,
   Camera,
@@ -27,12 +28,20 @@ export class IFCService {
   private raycaster: Raycaster;
   private camera: Camera;
 
-  selectMat = new MeshLambertMaterial({
+  private selectMat = new MeshLambertMaterial({
     transparent: true,
     opacity: 0.6,
     color: 0xff00ff,
     depthTest: false,
   });
+
+  private _prevFileUrl: string;
+
+  private _selectedIds = new BehaviorSubject<number[]>([]);
+
+  get selectedIds$() {
+    return this._selectedIds.asObservable();
+  }
 
   constructor(private spatialUtils: SpatialStructUtils) {
     this.ifcLoader = new IFCLoader();
@@ -44,13 +53,25 @@ export class IFCService {
     this.initScene();
   }
 
-  async reset() {
+  async reset(reloadPrevious: boolean = true) {
     if (this.ifcLoader) {
       this.ifcLoader.ifcManager.dispose();
       this.ifcLoader = null;
       this.ifcModels = [];
       this.ifcLoader = new IFCLoader();
       this.ifcLoader.ifcManager.setWasmPath(this.wasmPath);
+
+      this._selectedIds.next([]);
+      this.spatialUtils.clear();
+      
+      if(reloadPrevious && this._prevFileUrl){
+        this.loadUrl(this._prevFileUrl);
+
+        //reset the camera position to where it originally started
+        this.camera.position.z = 15;
+        this.camera.position.y = 13;
+        this.camera.position.x = 8;
+      }
     }
   }
 
@@ -87,7 +108,7 @@ export class IFCService {
     const renderer = new WebGLRenderer({ canvas: threeCanvas, alpha: true });
     // renderer.setSize(size.width, size.height);
     const rect = threeCanvas.getBoundingClientRect();
-    renderer.setSize(rect.width, rect.height);
+    renderer.setSize(rect.width-45, rect.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     //Creates grids and axes in the scene
@@ -113,11 +134,13 @@ export class IFCService {
   }
 
   loadFile(file: File) {
+    this.reset(false);
     const fileUrl = URL.createObjectURL(file);
     this.loadUrl(fileUrl);
   }
 
   loadUrl(url: string) {
+    this._prevFileUrl = url;
     this.ifcLoader.load(url, async (ifcModel) => {
       this.ifcModels.push(ifcModel);
 
@@ -152,7 +175,7 @@ export class IFCService {
     return this.raycaster.intersectObjects(this.ifcModels);
   }
 
-  highlight(x: number, y: number) {
+  highlight(x: number, y: number, isMulti: boolean) {
     const found: any = this.cast(x, y)[0];
     if (found) {
       // Gets Express ID
@@ -160,16 +183,23 @@ export class IFCService {
       const geometry = found.object.geometry;
       const id = this.ifcLoader.ifcManager.getExpressId(geometry, index);
 
-      this.highlightById([id]);
+      if (isMulti) {
+        const ids = [...this._selectedIds.value, id];
+        this.highlightById(ids);
+
+      } else {
+        this.highlightById([id]);
+      }
     } else {
-      this.ifcLoader.ifcManager.removeSubset(
-        0,
-        this.selectMat
-      );
+      this._selectedIds.next([]);
+      this.ifcLoader.ifcManager.removeSubset(0, this.selectMat);
     }
   }
 
   highlightById(expressIDs: number[]) {
+    expressIDs = Array.from(new Set<number>(expressIDs)); //remove any dupes
+    this._selectedIds.next(expressIDs);
+
     this.ifcLoader.ifcManager.createSubset({
       modelID: 0,
       ids: expressIDs,

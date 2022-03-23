@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
+import { IFCService } from './ifc.service';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +7,30 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.less']
 })
 export class AppComponent {
-  title = 'ng-ifc';
+  
+  @ViewChild('fileUpload', {static: true}) uploadField: ElementRef;
+
+  selectedIds: number[] = [];
+
+  constructor(private ifc: IFCService){}
+
+  ngOnInit(){
+    this.ifc.selectedIds$.subscribe(ids => {
+      this.selectedIds = ids;
+    });
+  }
+
+  reset(){
+    this.ifc.reset();
+  }
+
+  upload(){
+    if(this.uploadField.nativeElement.files && this.uploadField.nativeElement.files.length > 0){
+      this.ifc.loadFile(this.uploadField.nativeElement.files[0]);
+    }
+  }
+
+  hideSelected(){
+    
+  }
 }
