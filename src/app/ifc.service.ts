@@ -19,7 +19,7 @@ import { SpatialStructUtils } from './spatial-struct-utils';
 
 @Injectable({ providedIn: 'root' })
 export class IFCService {
-  private wasmPath = '/assets/ifc/';
+  private wasmPath = 'assets/ifc/';
   private canvas: any;
   private scene: Scene;
   private ifcLoader: IFCLoader;
