@@ -4,6 +4,7 @@ import { IFCService } from './ifc.service';
 
 @Injectable({ providedIn: 'root' })
 export class IFCDataService {
+
   constructor(private ifc: IFCService) {}
 
   async readSelected() {
@@ -13,6 +14,12 @@ export class IFCDataService {
     let rawValues: any[] = [];
     for (const id of ids) {
       const rowData: any = {};
+      const properties = await this.ifc.getItemProperties(id);
+      rowData['name'] = properties.Name.value;
+      rowData['globalID'] = properties.GlobalId.value;
+      rowData['expressID'] = properties.expressID;
+      rowData['ifcType'] = this.ifc.getIFCType(id);
+
       const propertySets = await this.ifc.getPropertySets(id);
       for (const propertySet of propertySets) {
         if (this.isIfcPropertySet(propertySet)) {
@@ -72,13 +79,17 @@ export class IFCDataService {
     const names: string[] = [];
     propertySet.Quantities.forEach((quantity: any) => {
       names.push(quantity.Name.value);
-      names.push(quantity.Name.value + "_unit");
+      names.push(quantity.Name.value + '_unit');
     });
     return names;
   }
 
   async getPropNames(ids: number[]): Promise<string[]> {
     let propNames = new Set<string>();
+    propNames.add('globalID');
+    propNames.add('expressID');
+    propNames.add('name');
+    propNames.add('ifcType');
     for (const id of ids) {
       const propertySets = await this.ifc.getPropertySets(id);
       for (const propertySet of propertySets) {

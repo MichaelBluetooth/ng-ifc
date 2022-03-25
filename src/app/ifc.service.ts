@@ -237,7 +237,15 @@ export class IFCService {
     this.scene.add(subset);
   }
 
+  getItemProperties(expressID: number): Promise<any> {
+    return this.ifcLoader.ifcManager.getItemProperties(0, expressID, true);
+  }
+
   getPropertySets(expressID: number): Promise<any> {
     return this.ifcLoader.ifcManager.getPropertySets(0, expressID, true);
+  }
+
+  getIFCType(expressID: number){
+    return this.ifcLoader.ifcManager.getIfcType(0, expressID);
   }
 }
