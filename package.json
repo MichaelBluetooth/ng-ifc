@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "deploy": "ng build --base-href https://MichaelBluetooth.github.io/ng-ifc/ && npx angular-cli-ghpages --dir=dist/ng-ifc"
   },
   "private": true,
   "dependencies": {
