@@ -1,5 +1,5 @@
-<div class="card h-100">
-  <div class="card-header d-flex justify-content-between">
+<div class="card h-100 rounded-0">
+  <div class="card-header d-flex justify-content-between rounded-0">
     <div>
       <input #fileUpload type="file" class="d-none" (change)="upload()">
       <button class="btn me-2" (click)="fileUpload.click()" title="upload an IFC file"><i class='bx bx-upload'></i> Upload</button>
@@ -11,15 +11,10 @@
       <button class="btn me-2" (click)="generateGridData()"><i class='bx bx-table' ></i> Generate Grid Data</button>
     </div>
   </div>
-  <div class="card-body p-0 m-0" style="height: calc(100% - 54px)">
+  <div class="card-body p-0 m-0 rounded-0" style="height: calc(100% - 54px)">
     <div class="d-flex h-100">
-      <div class="d-flex flex-column h-100" style="width: 25%;">
-        <div style="height: 25%">
-          <app-component-types></app-component-types>
-        </div>
-        <div style="height: 75%">
-          <app-spatial-tree></app-spatial-tree>
-        </div>
+      <div style="width: 35%">
+        <app-control-panel></app-control-panel>
       </div>
       <div class="full">
         <app-ifc-viewer></app-ifc-viewer>

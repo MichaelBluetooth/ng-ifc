@@ -1,0 +1,26 @@
+<app-accordion class="h-100">
+  <app-accordion-section [isCollapsed]="false">
+    <div *accordionHeader>
+      Structure
+    </div>
+    <div *accordionBody>
+      <app-spatial-tree></app-spatial-tree>
+    </div>
+  </app-accordion-section>
+  <app-accordion-section>
+    <div *accordionHeader>
+      Properties
+    </div>
+    <div *accordionBody>
+      <app-properties-display></app-properties-display>
+    </div>
+  </app-accordion-section>
+  <app-accordion-section>
+    <div *accordionHeader>
+      Components
+    </div>
+    <div *accordionBody>
+      <app-component-types></app-component-types>
+    </div>
+  </app-accordion-section>
+</app-accordion>

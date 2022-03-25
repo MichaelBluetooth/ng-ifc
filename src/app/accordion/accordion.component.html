@@ -1,0 +1,12 @@
+<div class="d-flex flex-column h-100">
+  <ng-container *ngFor="let section of sections; let i = index">
+    <div class="header border clickable bg-light p-2" (click)="toggle(i)">
+      <ng-container *ngTemplateOutlet="section.labelTemplate"></ng-container>
+    </div>
+    <div class="body h-100 border" [class.d-none]="section.isCollapsed">
+      <div class="m-2">
+        <ng-container *ngTemplateOutlet="section.bodyTemplate"></ng-container>
+      </div>
+    </div>
+  </ng-container>
+</div>

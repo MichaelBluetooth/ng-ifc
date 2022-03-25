@@ -1,0 +1,25 @@
+<div class="d-flex">
+  <button class="btn btn-secondary me-2" (click)="collapseAll()">Collapse All</button>
+  <button class="btn btn-secondary me-2" (click)="expandAll()">Expand All</button>
+</div>
+<div class="row p-2" *ngFor="let selectedItem of propertyData">
+  <div class="mb-2 d-flex justify-content-between align-items-center">
+    <div class="fw-bold">
+      {{selectedItem.values.name || 'NO_NAME_SPECIFIED'}}
+    </div>
+    <div>
+      <button class="btn btn-sm btn-light" (click)="selectedItem.collapsed = !selectedItem.collapsed">
+        <i *ngIf="selectedItem.collapsed" class='bx bx-chevron-left'></i>
+        <i *ngIf="!selectedItem.collapsed" class='bx bx-chevron-down'></i>
+      </button>
+    </div>
+  </div>
+  <ng-container *ngIf="!selectedItem.collapsed">
+    <ng-container *ngFor="let propName of propertyNames">
+      <div class="row" *ngIf="selectedItem.values[propName]">
+        <div class="col-md-6 text-muted">{{propName}}</div>
+        <div class="col-md-6">{{selectedItem.values[propName]}}</div>
+      </div>
+    </ng-container>
+  </ng-container>
+</div>

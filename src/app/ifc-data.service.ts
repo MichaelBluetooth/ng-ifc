@@ -4,11 +4,9 @@ import { IFCService } from './ifc.service';
 
 @Injectable({ providedIn: 'root' })
 export class IFCDataService {
-
   constructor(private ifc: IFCService) {}
 
-  async readSelected() {
-    const ids = this.ifc.selectedIds;
+  async getPropertyData(ids: number[]): Promise<any> {
     let propNames = await this.getPropNames(ids);
 
     let rawValues: any[] = [];
@@ -49,6 +47,17 @@ export class IFCDataService {
       rawValues.push(rowData);
     }
 
+    return {
+      propertyNames: propNames,
+      propertyValues: rawValues
+    };
+  }
+
+  async readSelected() {
+    const ids = this.ifc.selectedIds;
+    const data = await this.getPropertyData(ids);
+    let propNames = data.propertyNames;
+    let rawValues = data.propertyValues;
     let csvData: string = this.toCSV(propNames, rawValues);
     this.downloadData(csvData, 'data.csv');
   }
