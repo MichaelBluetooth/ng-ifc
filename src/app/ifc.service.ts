@@ -1,5 +1,5 @@
 import { ElementRef, Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, from, Observable } from 'rxjs';
 import {
   AmbientLight,
   Camera,
@@ -43,6 +43,10 @@ export class IFCService {
     return this._selectedIds.asObservable();
   }
 
+  get selectedIds() {
+    return this._selectedIds.value;
+  }
+
   constructor(private spatialUtils: SpatialStructUtils) {
     this.ifcLoader = new IFCLoader();
     this.ifcLoader.ifcManager.setWasmPath(this.wasmPath);
@@ -63,8 +67,8 @@ export class IFCService {
 
       this._selectedIds.next([]);
       this.spatialUtils.clear();
-      
-      if(reloadPrevious && this._prevFileUrl){
+
+      if (reloadPrevious && this._prevFileUrl) {
         this.loadUrl(this._prevFileUrl);
 
         //reset the camera position to where it originally started
@@ -108,7 +112,7 @@ export class IFCService {
     const renderer = new WebGLRenderer({ canvas: threeCanvas, alpha: true });
     // renderer.setSize(size.width, size.height);
     const rect = threeCanvas.getBoundingClientRect();
-    renderer.setSize(rect.width-60, rect.height);
+    renderer.setSize(rect.width - 60, rect.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     //Creates grids and axes in the scene
@@ -186,7 +190,6 @@ export class IFCService {
       if (isMulti) {
         const ids = [...this._selectedIds.value, id];
         this.highlightById(ids);
-
       } else {
         this.highlightById([id]);
       }
@@ -232,5 +235,9 @@ export class IFCService {
   showElementsByType(type: string) {
     const subset = this.subsets[type];
     this.scene.add(subset);
+  }
+
+  getPropertySets(expressID: number): Promise<any> {
+    return this.ifcLoader.ifcManager.getPropertySets(0, expressID, true);
   }
 }

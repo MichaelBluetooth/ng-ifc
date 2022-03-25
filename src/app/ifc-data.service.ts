@@ -1,0 +1,124 @@
+import { Injectable } from '@angular/core';
+import { of } from 'rxjs';
+import { IFCService } from './ifc.service';
+
+@Injectable({ providedIn: 'root' })
+export class IFCDataService {
+  constructor(private ifc: IFCService) {}
+
+  async readSelected() {
+    const ids = this.ifc.selectedIds;
+    let propNames = await this.getPropNames(ids);
+
+    let rawValues: any[] = [];
+    for (const id of ids) {
+      const rowData: any = {};
+      const propertySets = await this.ifc.getPropertySets(id);
+      for (const propertySet of propertySets) {
+        if (this.isIfcPropertySet(propertySet)) {
+          for (const prop of propertySet.HasProperties) {
+            rowData[prop.Name.value] = prop.NominalValue.value;
+          }
+        } else if (this.isIfcElementQuantity(propertySet)) {
+          for (const quantity of propertySet.Quantities) {
+            //NOTE - each "quantity" here can be IfcQuantityLength, IfcQuantityWeight, IfcQuantityVolume or IfcQuantityArea.
+            if (quantity.LengthValue) {
+              rowData[quantity.Name.value] = quantity.LengthValue.value;
+            } else if (quantity.AreaValue) {
+              rowData[quantity.Name.value] = quantity.AreaValue.value;
+            } else if (quantity.WeightValue) {
+              rowData[quantity.Name.value] = quantity.WeightValue.value;
+            } else if (quantity.VolumeValue) {
+              rowData[quantity.Name.value] = quantity.VolumeValue.value;
+            }
+
+            //NOTE - there is a "quantity.Unit" field, but it always appears to be null
+            //NOTE - the "quantity.Description.value" field always appears to store a text representation of the unit
+            //NOTE - the "quantity.Description.value" storing the unit appears to be consistant with all measurement types
+            rowData[quantity.Name.value + '_unit'] = quantity.Description.value;
+          }
+        }
+      }
+      rawValues.push(rowData);
+    }
+
+    let csvData: string = this.toCSV(propNames, rawValues);
+    this.downloadData(csvData, 'data.csv');
+  }
+
+  isIfcPropertySet(propertySet: any): boolean {
+    return (
+      propertySet.constructor.name === 'IfcPropertySet' &&
+      propertySet.HasProperties
+    );
+  }
+
+  isIfcElementQuantity(propertySet: any): boolean {
+    return (
+      propertySet.constructor.name === 'IfcElementQuantity' &&
+      propertySet.Quantities
+    );
+  }
+
+  getPropertyNames(propertySet: any): string[] {
+    const names: string[] = [];
+    propertySet.HasProperties.forEach((prop: any) => {
+      names.push(prop.Name.value);
+    });
+    return names;
+  }
+
+  getMeasurementNames(propertySet: any): string[] {
+    const names: string[] = [];
+    propertySet.Quantities.forEach((quantity: any) => {
+      names.push(quantity.Name.value);
+      names.push(quantity.Name.value + "_unit");
+    });
+    return names;
+  }
+
+  async getPropNames(ids: number[]): Promise<string[]> {
+    let propNames = new Set<string>();
+    for (const id of ids) {
+      const propertySets = await this.ifc.getPropertySets(id);
+      for (const propertySet of propertySets) {
+        if (this.isIfcPropertySet(propertySet)) {
+          propNames = new Set<string>([
+            ...propNames,
+            ...this.getPropertyNames(propertySet),
+          ]);
+        } else if (this.isIfcElementQuantity(propertySet)) {
+          propNames = new Set<string>([
+            ...propNames,
+            ...this.getMeasurementNames(propertySet),
+          ]);
+        }
+      }
+    }
+    return of(Array.from(propNames)).toPromise();
+  }
+
+  toCSV(propNames: string[], rawValues: any): string {
+    let csvData: string = '';
+    csvData += propNames.join(',');
+    rawValues.forEach((rawValue: any) => {
+      let csvRow: string[] = [];
+      propNames.forEach((propName: string) => {
+        csvRow.push(rawValue[propName]);
+      });
+      csvData += '\n';
+      csvData += csvRow.join(',');
+    });
+    return csvData;
+  }
+
+  downloadData(csv: string, filename: string) {
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const elem = window.document.createElement('a');
+    elem.href = window.URL.createObjectURL(blob);
+    elem.download = filename;
+    document.body.appendChild(elem);
+    elem.click();
+    document.body.removeChild(elem);
+  }
+}

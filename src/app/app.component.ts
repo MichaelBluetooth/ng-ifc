@@ -1,4 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
+import { IFCDataService } from './ifc-data.service';
 import { IFCService } from './ifc.service';
 
 @Component({
@@ -12,7 +13,7 @@ export class AppComponent {
 
   selectedIds: number[] = [];
 
-  constructor(private ifc: IFCService){}
+  constructor(private ifc: IFCService, private gridData: IFCDataService){}
 
   ngOnInit(){
     this.ifc.selectedIds$.subscribe(ids => {
@@ -43,7 +44,7 @@ export class AppComponent {
   }
 
   generateGridData(){
-    alert('TODO: make this button do the thing');
+    this.gridData.readSelected();
   }
 
   deselectAll(){
