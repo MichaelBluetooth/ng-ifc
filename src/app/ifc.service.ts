@@ -73,6 +73,7 @@ export class IFCService {
       this.ifcLoader = new IFCLoader();
       this.ifcLoader.ifcManager.setWasmPath(this.wasmPath);
 
+      this._hiddenIds.next([]);
       this._selectedIds.next([]);
       this.spatialUtils.clear();
 
@@ -188,7 +189,18 @@ export class IFCService {
   }
 
   highlight(x: number, y: number, isMulti: boolean) {
-    const found: any = this.cast(x, y)[0];
+    const rayCastedElements = this.cast(x, y);
+
+    //For all elements in the intersected objects, find the first one that hasn't been hidden
+    let found: any = null;
+    for(const elementInSelection of rayCastedElements as any){
+      const expressID = elementInSelection.object.getExpressId(elementInSelection.object.geometry, elementInSelection.faceIndex)
+      if(this._hiddenIds.value.indexOf(expressID) === -1){
+        found = elementInSelection;
+        break;
+      }
+    };
+
     if (found) {
       // Gets Express ID
       const index = found.faceIndex;
@@ -242,6 +254,13 @@ export class IFCService {
   hideElementsByType(type: string) {
     const subset = this.subsets[type];
     subset.removeFromParent();
+
+    const byType = this.spatialUtils.getTypes();
+    byType[type].forEach((elementByType: any) => {
+      const hiddenIds = this._hiddenIds.value;
+      hiddenIds.push(elementByType.expressID);
+      this._hiddenIds.next(hiddenIds);
+    });
   }
 
   showElementsByType(type: string) {

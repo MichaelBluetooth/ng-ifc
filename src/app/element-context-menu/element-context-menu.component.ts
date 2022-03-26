@@ -36,13 +36,8 @@ export class ElementContextMenuComponent implements OnInit {
 
   select() {
     if (this.ifcNode.children && this.ifcNode.children.length > 0) {
-      //collect and hide all _leaf_ nodes
-      const ids: number[] = [];
-      this.iterateChildren(this.ifcNode, (child: IFCNode) => {
-        if(!child.children || child.children.length === 0){
-          ids.push(child.expressID);
-        }
-      });
+      //collect and select all _leaf_ nodes
+      const ids: number[] = this.getAllIds();
       this.ifcService.highlightById(ids);
       this.ctxMenuService.destroyContextMenu();
 
@@ -62,13 +57,29 @@ export class ElementContextMenuComponent implements OnInit {
     }
   }
 
+  getAllIds(): number[]{
+    const ids: number[] = [];
+    this.iterateChildren(this.ifcNode, (node: IFCNode) => {
+      ids.push(node.expressID);
+    });
+    return ids;
+  }
+
   hide(){
-    this.ifcService.hideElementsById([this.ifcNode.expressID]);
+    const ids: number[] = this.getAllIds();
+    this.ifcService.hideElementsById(ids);
     this.ctxMenuService.destroyContextMenu();
   }
 
   show(){
-    this.ifcService.showElementsById([this.ifcNode.expressID]);
+    const ids: number[] = this.getAllIds();
+    this.ifcService.showElementsById(ids);
     this.ctxMenuService.destroyContextMenu();
+  }
+
+  hideOthers(){
+    const ids: number[] = this.getAllIds();
+    this.ifcService.hideOthers(ids);
+    this.ctxMenuService.destroyContextMenu();    
   }
 }
