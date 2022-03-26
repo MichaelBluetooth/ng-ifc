@@ -244,8 +244,8 @@ export class IFCService {
     this.scene.add(subset);
   }
 
-  hiddenIds: number[] = [];
-  hiddenElementsSubset: Subset = null;
+  private hiddenIds: number[] = [];
+  private hiddenElementsSubset: Subset = null;
   hideElementsById(ids: number[]) {
     if(this.hiddenElementsSubset){
       this.ifcLoader.ifcManager.removeSubset(0, null, 'hidden_subset');
@@ -268,6 +268,19 @@ export class IFCService {
     this.hiddenElementsSubset.removeFromParent();
     this._selectedIds.next([]);
     this.ifcLoader.ifcManager.removeSubset(0, this.selectMat);
+  }
+
+  showElementsById(ids: number[]){
+    if(this.hiddenElementsSubset){
+      const newHiddenIds = this.hiddenIds;
+      ids.forEach(id => {
+        const idx = newHiddenIds.indexOf(id);
+        this.hiddenIds.splice(idx, 1);
+      });
+
+      this.showAll();
+      this.hideElementsById(newHiddenIds);
+    }
   }
 
   hideOthers(ids: number[]){

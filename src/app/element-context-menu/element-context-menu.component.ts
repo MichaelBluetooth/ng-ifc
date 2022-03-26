@@ -61,4 +61,14 @@ export class ElementContextMenuComponent implements OnInit {
       });
     }
   }
+
+  hide(){
+    this.ifcService.hideElementsById([this.ifcNode.expressID]);
+    this.ctxMenuService.destroyContextMenu();
+  }
+
+  show(){
+    this.ifcService.showElementsById([this.ifcNode.expressID]);
+    this.ctxMenuService.destroyContextMenu();
+  }
 }
