@@ -13,7 +13,7 @@ export class PropertiesDisplayComponent implements OnInit {
 
   constructor(private ifc: IFCService, private ifcData: IFCDataService) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.ifc.selectedIds$.subscribe(async (ids) => {
       const propData = await this.ifcData.getPropertyData(ids);
       this.propertyData = propData.propertyValues.map((pv: any) => {

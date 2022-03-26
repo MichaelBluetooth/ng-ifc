@@ -14,11 +14,14 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { IFCLoader } from 'web-ifc-three';
+import { Subset } from 'web-ifc-three/IFC/components/subsets/SubsetManager';
 import { IFCNode } from './models/ifc-node';
 import { SpatialStructUtils } from './spatial-struct-utils';
+import * as _WEBIFC from 'web-ifc';
 
 @Injectable({ providedIn: 'root' })
 export class IFCService {
+  private WEBIFC: any = _WEBIFC;
   private wasmPath = 'assets/ifc/';
   private canvas: any;
   private scene: Scene;
@@ -215,6 +218,10 @@ export class IFCService {
   initSubsetsByType() {
     const byType = this.spatialUtils.getTypes();
     Object.keys(byType).forEach((type) => {
+      if (this.subsets[type]) {
+        this.ifcLoader.ifcManager.removeSubset(0, null, type);
+      }
+
       const nodesOfType: IFCNode[] = byType[type];
       const subsetOfType = this.ifcLoader.ifcManager.createSubset({
         modelID: 0,
@@ -237,6 +244,49 @@ export class IFCService {
     this.scene.add(subset);
   }
 
+  hiddenIds: number[] = [];
+  hiddenElementsSubset: Subset = null;
+  hideElementsById(ids: number[]) {
+    if(this.hiddenElementsSubset){
+      this.ifcLoader.ifcManager.removeSubset(0, null, 'hidden_subset');
+    }
+
+    this.hiddenIds = this.hiddenIds.concat(ids);
+    ids.forEach((id) => {
+      const ifcType = this.ifcLoader.ifcManager.getIfcType(0, id);
+      this.ifcLoader.ifcManager.removeFromSubset(0, ids, ifcType);
+    });
+
+    this.hiddenElementsSubset = this.ifcLoader.ifcManager.createSubset({
+      modelID: 0,
+      ids: ids,
+      scene: this.scene,
+      removePrevious: true,
+      customID: 'hidden_subset',
+    });
+
+    this.hiddenElementsSubset.removeFromParent();
+    this._selectedIds.next([]);
+    this.ifcLoader.ifcManager.removeSubset(0, this.selectMat);
+  }
+
+  hideOthers(ids: number[]){
+    const otherIds = this.spatialUtils.getAllIds().filter(id => ids.indexOf(id) === -1);
+    this.hideElementsById(otherIds);
+  }
+
+  showAll() {
+    //if there's a subset of individual elements, remove it
+    if(this.hiddenElementsSubset){
+      this.ifcLoader.ifcManager.removeSubset(0, this.selectMat, 'hidden_subset');
+    }
+
+    //rebuild the subsets by type to make sure we have all the IDs for each type
+    //this ensures any elements that were individually hidden are put back in the subset by type
+    this.initSubsetsByType();
+    this.hiddenIds = [];
+  }
+
   getItemProperties(expressID: number): Promise<any> {
     return this.ifcLoader.ifcManager.getItemProperties(0, expressID, true);
   }
@@ -245,7 +295,7 @@ export class IFCService {
     return this.ifcLoader.ifcManager.getPropertySets(0, expressID, true);
   }
 
-  getIFCType(expressID: number){
+  getIFCType(expressID: number) {
     return this.ifcLoader.ifcManager.getIfcType(0, expressID);
   }
 }

@@ -64,14 +64,14 @@ export class IFCDataService {
 
   isIfcPropertySet(propertySet: any): boolean {
     return (
-      propertySet.constructor.name === 'IfcPropertySet' &&
+      // propertySet.constructor.name === 'IfcPropertySet' && 
       propertySet.HasProperties
     );
   }
 
   isIfcElementQuantity(propertySet: any): boolean {
     return (
-      propertySet.constructor.name === 'IfcElementQuantity' &&
+      // propertySet.constructor.name === 'IfcElementQuantity' && <--this doesn't work when we build in prod mode!
       propertySet.Quantities
     );
   }

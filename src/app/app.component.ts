@@ -32,15 +32,15 @@ export class AppComponent {
   }
 
   hideSelected(){
-    alert('TODO: make this button do the thing');
+    this.ifc.hideElementsById(this.selectedIds);
   }
 
   hideOthers(){
-    alert('TODO: make this button do the thing');
+    this.ifc.hideOthers(this.selectedIds);
   }
 
   showAll(){
-    alert('TODO: make this button do the thing');
+    this.ifc.showAll();
   }
 
   generateGridData(){
