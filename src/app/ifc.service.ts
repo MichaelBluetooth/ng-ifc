@@ -41,6 +41,7 @@ export class IFCService {
   private _prevFileUrl: string;
 
   private _selectedIds = new BehaviorSubject<number[]>([]);
+  private _hiddenIds = new BehaviorSubject<number[]>([]);
 
   get selectedIds$() {
     return this._selectedIds.asObservable();
@@ -48,6 +49,10 @@ export class IFCService {
 
   get selectedIds() {
     return this._selectedIds.value;
+  }
+
+  get hiddenIds$() {
+    return this._hiddenIds.asObservable();
   }
 
   constructor(private spatialUtils: SpatialStructUtils) {
@@ -244,14 +249,15 @@ export class IFCService {
     this.scene.add(subset);
   }
 
-  private hiddenIds: number[] = [];
   private hiddenElementsSubset: Subset = null;
   hideElementsById(ids: number[]) {
     if(this.hiddenElementsSubset){
       this.ifcLoader.ifcManager.removeSubset(0, null, 'hidden_subset');
     }
 
-    this.hiddenIds = this.hiddenIds.concat(ids);
+    let hiddenIds = this._hiddenIds.value;
+    hiddenIds = hiddenIds.concat(ids);
+    this._hiddenIds.next(hiddenIds);
     ids.forEach((id) => {
       const ifcType = this.ifcLoader.ifcManager.getIfcType(0, id);
       this.ifcLoader.ifcManager.removeFromSubset(0, ids, ifcType);
@@ -272,14 +278,15 @@ export class IFCService {
 
   showElementsById(ids: number[]){
     if(this.hiddenElementsSubset){
-      const newHiddenIds = this.hiddenIds;
+      const newHiddenIds = this._hiddenIds.value;
       ids.forEach(id => {
         const idx = newHiddenIds.indexOf(id);
-        this.hiddenIds.splice(idx, 1);
+        newHiddenIds.splice(idx, 1);
       });
 
       this.showAll();
       this.hideElementsById(newHiddenIds);
+      this._hiddenIds.next(newHiddenIds);
     }
   }
 
@@ -297,7 +304,7 @@ export class IFCService {
     //rebuild the subsets by type to make sure we have all the IDs for each type
     //this ensures any elements that were individually hidden are put back in the subset by type
     this.initSubsetsByType();
-    this.hiddenIds = [];
+    this._hiddenIds.next([]);
   }
 
   getItemProperties(expressID: number): Promise<any> {

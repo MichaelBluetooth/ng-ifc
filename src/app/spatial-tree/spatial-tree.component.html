@@ -10,7 +10,7 @@
         </div>
 
         <span class="clickable d-inline-block text-truncate" style="max-width: 200px;" (click)="select(node)"
-          (contextmenu)="openContextMenu(node, $event)">
+          (contextmenu)="openContextMenu(node, $event)" [class.text-decoration-line-through]="isHidden(node)">
           <span *ngIf="node?.Name?.value">{{node?.Name?.value}}</span>
           <span *ngIf="!node?.Name?.value">{{node.type}}</span>
         </span>

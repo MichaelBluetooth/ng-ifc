@@ -15,6 +15,7 @@ export class SpatialTreeComponent implements OnInit {
   isMulti = false;
   tree$: Observable<IFCRootNode> = this.utils.spatialStruct$;
   selectedIds: Set<number> = new Set<number>();
+  hiddenIds: Set<number> = new Set<number>();
 
   constructor(
     private utils: SpatialStructUtils,
@@ -24,15 +25,23 @@ export class SpatialTreeComponent implements OnInit {
 
   ngOnInit(): void {
     this.ifc.selectedIds$.subscribe((ids) => {
-      if(ids.length > 0 && !this.selectedIds.has(ids[0])){
-        document.getElementById(ids[0].toString()).scrollIntoView()
+      if (ids.length > 0 && !this.selectedIds.has(ids[0])) {
+        document.getElementById(ids[0].toString()).scrollIntoView();
       }
       this.selectedIds = new Set(ids);
+    });
+
+    this.ifc.hiddenIds$.subscribe((ids) => {
+      this.hiddenIds = new Set(ids);
     });
   }
 
   isSelected(node: IFCNode) {
     return this.selectedIds.has(node.expressID);
+  }
+
+  isHidden(node: IFCNode) {
+    return this.hiddenIds.has(node.expressID);
   }
 
   select(node: IFCNode) {
