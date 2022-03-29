@@ -232,6 +232,11 @@ export class IFCService {
     });
   }
 
+  highlightAllVisible(){
+    let visibleIds = this.getAllIds().filter(id => this._hiddenIds.value.indexOf(id) === -1);
+    this.highlightById(visibleIds);
+  }
+
   initSubsetsByType() {
     const byType = this.spatialUtils.getTypes();
     Object.keys(byType).forEach((type) => {
@@ -336,5 +341,9 @@ export class IFCService {
 
   getIFCType(expressID: number) {
     return this.ifcLoader.ifcManager.getIfcType(0, expressID);
+  }
+
+  getAllIds(){
+    return this.spatialUtils.getAllIds();
   }
 }

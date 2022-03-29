@@ -12,6 +12,7 @@ export class AppComponent {
   @ViewChild('fileUpload', {static: true}) uploadField: ElementRef;
 
   selectedIds: number[] = [];
+  hiddenIds: number[] = [];
 
   constructor(private ifc: IFCService, private gridData: IFCDataService){}
 
@@ -49,5 +50,9 @@ export class AppComponent {
 
   deselectAll(){
     this.ifc.highlightById([]);
+  }
+
+  selectAll(){
+    this.ifc.highlightAllVisible();
   }
 }
