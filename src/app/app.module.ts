@@ -12,6 +12,8 @@ import { AccordionBodyDirective } from './accordion/accordion-body.directive';
 import { AccordionSectionComponent } from './accordion/accordion-section.component';
 import { ControlPanelComponent } from './control-panel/control-panel.component';
 import { PropertiesDisplayComponent } from './properties-display/properties-display.component';
+import { IsUnitFieldPipe } from './is-unit-field.pipe';
+import { PropValueDisplayPipe } from './prop-value-display.pipe';
 
 @NgModule({
   declarations: [
@@ -25,7 +27,9 @@ import { PropertiesDisplayComponent } from './properties-display/properties-disp
     AccordionHeaderDirective,
     AccordionBodyDirective,
     ControlPanelComponent,
-    PropertiesDisplayComponent
+    PropertiesDisplayComponent,
+    IsUnitFieldPipe,
+    PropValueDisplayPipe
   ],
   imports: [
     BrowserModule

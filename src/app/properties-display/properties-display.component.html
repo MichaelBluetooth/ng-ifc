@@ -16,10 +16,14 @@
   </div>
   <ng-container *ngIf="!selectedItem.collapsed">
     <ng-container *ngFor="let propName of propertyNames">
-      <div class="row" *ngIf="selectedItem.values[propName]">
-        <div class="col-md-6 text-muted">{{propName}}</div>
-        <div class="col-md-6">{{selectedItem.values[propName]}}</div>
-      </div>
+      <ng-container *ngIf="!(propName | isUnitField)">
+        <div class="row" *ngIf="selectedItem.values[propName]">
+          <div class="col-md-6 text-muted">{{propName}}</div>
+          <div class="col-md-6">
+            {{selectedItem.values | propValueDisplay:propName }}
+          </div>
+        </div>
+      </ng-container>
     </ng-container>
   </ng-container>
 </div>
