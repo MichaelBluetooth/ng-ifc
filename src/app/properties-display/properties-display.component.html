@@ -1,8 +1,9 @@
 <div class="d-flex">
-  <button class="btn btn-secondary me-2" (click)="collapseAll()">Collapse All</button>
-  <button class="btn btn-secondary me-2" (click)="expandAll()">Expand All</button>
+  <button class="btn btn-secondary me-2" (click)="collapseAll()"><i class='bx bx-search' ></i> Search</button>
+  <button class="btn btn-secondary me-2" (click)="expandAll()"><i class='bx bx-expand'></i> Expand All</button>
+  <button class="btn btn-secondary me-2" (click)="collapseAll()"><i class='bx bx-collapse'></i> Collapse All</button>
 </div>
-<div class="row p-2" *ngFor="let selectedItem of propertyData">
+<div class="row p-2" *ngFor="let selectedItem of propertyData; let itemIdx = index">
   <div class="mb-2 d-flex justify-content-between align-items-center">
     <div class="fw-bold">
       {{selectedItem.values.name || 'NO_NAME_SPECIFIED'}}
@@ -15,10 +16,13 @@
     </div>
   </div>
   <ng-container *ngIf="!selectedItem.collapsed">
-    <ng-container *ngFor="let propName of propertyNames">
+    <ng-container *ngFor="let propName of propertyNames; let propNameIdx = index">
       <ng-container *ngIf="!(propName | isUnitField)">
-        <div class="row" *ngIf="selectedItem.values[propName]">
-          <div class="col-md-6 text-muted">{{propName}}</div>
+        <div class="row d-flex align-items-center" *ngIf="selectedItem.values[propName]">
+          <div class="col-md-1">
+            <input type="checkbox">
+          </div>
+          <div class="col-md-5 text-muted">{{propName}}</div>
           <div class="col-md-6">
             {{selectedItem.values | propValueDisplay:propName }}
           </div>

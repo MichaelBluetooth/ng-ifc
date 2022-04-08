@@ -65,14 +65,14 @@ export class IfcViewerComponent implements AfterContentInit {
 
   @HostListener('document:keydown', ['$event'])
   shiftdown(evt: any) {
-    if (evt.shiftKey) {
+    if (evt.key === 'Shift') {
       this.isMulti = true;
     }
   }
 
   @HostListener('document:keyup', ['$event'])
   shiftup(evt: any) {
-    if (evt.shiftKey) {
+    if (evt.key === 'Shift') {
       this.isMulti = false;
     }
   }
