@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { IFCDataService } from './ifc-data.service';
-import { IFCService } from './ifc.service';
+import { IFCService } from './viewer/ifc/ifc';
 
 @Component({
   selector: 'app-root',
@@ -17,13 +17,13 @@ export class AppComponent {
   constructor(private ifc: IFCService, private gridData: IFCDataService){}
 
   ngOnInit(){
-    this.ifc.selectedIds$.subscribe(ids => {
-      this.selectedIds = ids;
-    });
+    // this.ifc.selectedIds$.subscribe(ids => {
+    //   this.selectedIds = ids;
+    // });
   }
 
   reset(){
-    this.ifc.reset();
+    this.ifc.reset(true);
   }
 
   upload(){

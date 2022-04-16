@@ -1,5 +1,5 @@
 <div class="d-flex">
-  <button class="btn btn-secondary me-2" (click)="collapseAll()"><i class='bx bx-search' ></i> Search</button>
+  <button class="btn btn-secondary me-2" (click)="search()"><i class='bx bx-search' ></i> Search</button>
   <button class="btn btn-secondary me-2" (click)="expandAll()"><i class='bx bx-expand'></i> Expand All</button>
   <button class="btn btn-secondary me-2" (click)="collapseAll()"><i class='bx bx-collapse'></i> Collapse All</button>
 </div>
@@ -20,7 +20,7 @@
       <ng-container *ngIf="!(propName | isUnitField)">
         <div class="row d-flex align-items-center" *ngIf="selectedItem.values[propName]">
           <div class="col-md-1">
-            <input type="checkbox">
+            <input type="checkbox" (change)="addItem(propName, selectedItem.values[propName])">
           </div>
           <div class="col-md-5 text-muted">{{propName}}</div>
           <div class="col-md-6">

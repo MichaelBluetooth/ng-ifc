@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppComponent } from './app.component';
-import { IfcViewerComponent } from './ifc-viewer/ifc-viewer.component';
 import { SpatialTreeComponent } from './spatial-tree/spatial-tree.component';
 import { ElementContextMenuComponent } from './element-context-menu/element-context-menu.component';
 import { ComponentTypesComponent } from './component-types/component-types.component';
@@ -14,11 +13,12 @@ import { ControlPanelComponent } from './control-panel/control-panel.component';
 import { PropertiesDisplayComponent } from './properties-display/properties-display.component';
 import { IsUnitFieldPipe } from './is-unit-field.pipe';
 import { PropValueDisplayPipe } from './prop-value-display.pipe';
+import { IfcViewer2Component } from './ifc-viewer2/ifc-viewer2.component';
+import { ButtonBarComponent } from './button-bar/button-bar.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    IfcViewerComponent,
     SpatialTreeComponent,
     ElementContextMenuComponent,
     ComponentTypesComponent,
@@ -29,7 +29,9 @@ import { PropValueDisplayPipe } from './prop-value-display.pipe';
     ControlPanelComponent,
     PropertiesDisplayComponent,
     IsUnitFieldPipe,
-    PropValueDisplayPipe
+    PropValueDisplayPipe,
+    IfcViewer2Component,
+    ButtonBarComponent
   ],
   imports: [
     BrowserModule

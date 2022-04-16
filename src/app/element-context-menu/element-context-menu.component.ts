@@ -6,8 +6,8 @@ import {
   OnInit,
 } from '@angular/core';
 import { IfcContextMenuService } from '../ifc-context-menu.service';
-import { IFCService } from '../ifc.service';
 import { IFCNode } from '../models/ifc-node';
+import { IFCService } from '../viewer/ifc/ifc';
 
 @Component({
   selector: 'app-element-context-menu',

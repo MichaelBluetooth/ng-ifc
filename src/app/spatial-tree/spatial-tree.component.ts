@@ -1,10 +1,8 @@
-import { Component, HostListener, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Component, HostListener, Input, OnInit } from '@angular/core';
 import { IfcContextMenuService } from '../ifc-context-menu.service';
-import { IFCService } from '../ifc.service';
 import { IFCNode } from '../models/ifc-node';
 import { IFCRootNode } from '../models/ifc-root-node';
-import { SpatialStructUtils } from '../spatial-struct-utils';
+import { IFCService } from '../viewer/ifc/ifc';
 
 @Component({
   selector: 'app-spatial-tree',
@@ -13,15 +11,11 @@ import { SpatialStructUtils } from '../spatial-struct-utils';
 })
 export class SpatialTreeComponent implements OnInit {
   isMulti = false;
-  tree$: Observable<IFCRootNode> = this.utils.spatialStruct$;
   selectedIds: Set<number> = new Set<number>();
   hiddenIds: Set<number> = new Set<number>();
+  tree: IFCRootNode;
 
-  constructor(
-    private utils: SpatialStructUtils,
-    private ifc: IFCService,
-    private ctxMenu: IfcContextMenuService
-  ) {}
+  constructor(private ctxMenu: IfcContextMenuService, private ifc: IFCService) {}
 
   ngOnInit(): void {
     this.ifc.selectedIds$.subscribe((ids) => {
@@ -34,6 +28,10 @@ export class SpatialTreeComponent implements OnInit {
     this.ifc.hiddenIds$.subscribe((ids) => {
       this.hiddenIds = new Set(ids);
     });
+
+    this.ifc.spatialStructure$.subscribe(tree => {
+      this.tree = tree;
+    })
   }
 
   isSelected(node: IFCNode) {

@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { IfcViewerComponent } from './ifc-viewer.component';
+import { IfcViewer2Component } from './ifc-viewer2.component';
 
-describe('IfcViewerComponent', () => {
-  let component: IfcViewerComponent;
-  let fixture: ComponentFixture<IfcViewerComponent>;
+describe('IfcViewer2Component', () => {
+  let component: IfcViewer2Component;
+  let fixture: ComponentFixture<IfcViewer2Component>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ IfcViewerComponent ]
+      declarations: [ IfcViewer2Component ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(IfcViewerComponent);
+    fixture = TestBed.createComponent(IfcViewer2Component);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { IFCDataService } from '../ifc-data.service';
-import { IFCService } from '../ifc.service';
+import { IFCService } from '../viewer/ifc/ifc';
 
 @Component({
   selector: 'app-properties-display',
@@ -15,16 +15,18 @@ export class PropertiesDisplayComponent implements OnInit {
 
   ngOnInit() {
     this.ifc.selectedIds$.subscribe(async (ids) => {
-      const propData = await this.ifcData.getPropertyData(ids);
-      this.propertyData = propData.propertyValues.map((pv: any) => {
-        return {
-          collapsed: false,
-          values: pv,
-        };
-      });
-      this.propertyNames = propData.propertyNames.filter(
-        (p: string) => p !== 'name'
-      );
+      if (ids.length === 1) {
+        const propData = await this.ifcData.getPropertyData([ids[0]]);
+        this.propertyData = propData.propertyValues.map((pv: any) => {
+          return {
+            collapsed: false,
+            values: pv,
+          };
+        });
+        this.propertyNames = propData.propertyNames.filter(
+          (p: string) => p !== 'name'
+        );
+      }
     });
   }
 
@@ -38,5 +40,17 @@ export class PropertiesDisplayComponent implements OnInit {
     this.propertyData.forEach((p) => {
       p.collapsed = false;
     });
+  }
+
+
+  items: any[] = [];
+  addItem(name: string, value: any){
+    this.items = [{
+      name, value
+    }];
+  }
+
+  search(){
+    // this.ifcSearchService.search(this.items);
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { of } from 'rxjs';
-import { IFCService } from './ifc.service';
+import { IFCService } from './viewer/ifc/ifc';
 
 @Injectable({ providedIn: 'root' })
 export class IFCDataService {

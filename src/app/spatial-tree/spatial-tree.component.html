@@ -24,7 +24,7 @@
     </li>
   </ng-template>
 
-  <ul *ngIf="tree$ | async" style="padding: 0">
-    <ng-container *ngTemplateOutlet="spatialStructTmpl; context: { node: tree$ | async }"></ng-container>
+  <ul *ngIf="tree" style="padding: 0">
+    <ng-container *ngTemplateOutlet="spatialStructTmpl; context: { node: tree }"></ng-container>
   </ul>
 </div>
