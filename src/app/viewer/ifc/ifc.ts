@@ -3,9 +3,15 @@ import { BehaviorSubject } from 'rxjs';
 import { IFCRootNode } from 'src/app/models/ifc-root-node';
 import { MeshLambertMaterial, Scene, Vector2 } from 'three';
 import { IFCLoader } from 'web-ifc-three';
+import { ParserProgress } from 'web-ifc-three/IFC/components/IFCParser';
 import { Subset } from 'web-ifc-three/IFC/components/subsets/SubsetManager';
 import { RaycasterHelper } from '../raycaster-helper';
 import { getAllIds } from './spatial-utils';
+import {
+  acceleratedRaycast,
+  computeBoundsTree,
+  disposeBoundsTree,
+} from 'three-mesh-bvh';
 
 const WASM_PATH = 'assets/ifc/';
 const ALL_ELEMENTS_SUBSET_NAME = 'all_elements';
@@ -29,6 +35,7 @@ export class IFCService {
   private _hiddenIds = new BehaviorSubject<number[]>([]);
   private _selectedIds = new BehaviorSubject<number[]>([]);
   private _spatialStructure = new BehaviorSubject<IFCRootNode>(null);
+  private _loading = new BehaviorSubject<number>(null);
 
   get hiddenIds$() {
     return this._hiddenIds.asObservable();
@@ -46,11 +53,23 @@ export class IFCService {
     return this._spatialStructure.asObservable();
   }
 
+  get loading$() {
+    return this._loading.asObservable();
+  }
+
   init(scene: Scene, raycaster: RaycasterHelper) {
     this.ifcLoader = new IFCLoader();
+    // this.ifcLoader.ifcManager.useWebWorkers(true, `${WASM_PATH}IFCWorker.js`);
     this.ifcLoader.ifcManager.setWasmPath(WASM_PATH);
+
     this.scene = scene;
     this.raycaster = raycaster;
+
+    this.ifcLoader.ifcManager.setOnProgress((event: ParserProgress) => {
+      const percent = (event.loaded / event.total) * 100;
+      const result = Math.trunc(percent);
+      this._loading.next(result);
+    });
   }
 
   async reset(reloadPrevious: boolean = false): Promise<void> {
@@ -68,30 +87,30 @@ export class IFCService {
     }
   }
 
-  loadFile(file: File) {
+  async loadFile(file: File) {
     this.reset();
     const fileUrl = URL.createObjectURL(file);
     this.loadUrl(fileUrl);
   }
 
-  loadUrl(url: string) {
+  async loadUrl(url: string) {
     this.previousFileUrl = url;
     this.ifcLoader.load(url, async (ifcModel) => {
       this.ifcModels.push(ifcModel);
 
-      const spatialStruct = await this.ifcLoader.ifcManager.getSpatialStructure(
-        ifcModel.modelID,
-        true
-      );
-      this._spatialStructure.next(spatialStruct);
-      const ids = await this.getAllExpressIds();
-      this.ifcLoader.ifcManager.createSubset({
-        modelID: 0,
-        ids: ids,
-        scene: this.scene,
-        removePrevious: true,
-        customID: ALL_ELEMENTS_SUBSET_NAME,
-      });
+      this.ifcLoader.ifcManager
+        .getSpatialStructure(ifcModel.modelID, true)
+        .then((spatialStruct) => {
+          this._spatialStructure.next(spatialStruct);
+          const ids = getAllIds(spatialStruct);
+          this.ifcLoader.ifcManager.createSubset({
+            modelID: 0,
+            ids: ids,
+            scene: this.scene,
+            removePrevious: true,
+            customID: ALL_ELEMENTS_SUBSET_NAME,
+          });
+        });
     });
   }
 

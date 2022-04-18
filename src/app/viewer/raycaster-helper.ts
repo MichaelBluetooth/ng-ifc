@@ -7,7 +7,7 @@ export class RaycasterHelper {
 
   constructor(canvas: any, camera: Camera) {
     this.raycaster = new Raycaster();
-    // this.raycaster.firstHitOnly = true;
+    this.raycaster.firstHitOnly = true;
     this.canvas = canvas;
     this.camera = camera;
   }

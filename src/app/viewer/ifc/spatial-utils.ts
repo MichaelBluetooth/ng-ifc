@@ -38,18 +38,20 @@ function groupChildren(parentId: any, children: IFCNode[]) {
 }
 
 function groupStoreyElements(root: IFCRootNode | IFCNode) {
-  let children = root.children;
-  if (root.type === 'IFCBUILDINGSTOREY') {
-    children = groupChildren(root.expressID, root.children);
-    children.sort((a: any, b: any) => {
-      if (a.Name.value > b.Name.value) return 1;
-      else return -1;
-    });
+  if (root) {
+    let children = root.children;
+    if (root.type === 'IFCBUILDINGSTOREY') {
+      children = groupChildren(root.expressID, root.children);
+      children.sort((a: any, b: any) => {
+        if (a.Name.value > b.Name.value) return 1;
+        else return -1;
+      });
+    }
+    for (let child of root.children) {
+      groupStoreyElements(child);
+    }
+    root.children = children;
   }
-  for (let child of root.children) {
-    groupStoreyElements(child);
-  }
-  root.children = children;
 }
 
 function recurseTree(
@@ -72,26 +74,32 @@ function getAllIds(spatialStruct: IFCRootNode): number[] {
   return allIds;
 }
 
-function buildTreeNode(ifcNode: any, parentId: any = null, collapsed: boolean = false): SpatialTreeNode {
-  const node: SpatialTreeNode = {
-    highlighted: false,
-    hidden: false,
-    collapsed: !!ifcNode.isGroup || collapsed,
-    isGroup: ifcNode.isGroup,
-    nodeId: ifcNode.expressID || `hz_group_${parentId}_${ifcNode.type}`,
-    label: ifcNode.Name?.value || ifcNode.type,
-    data: ifcNode,
-    children: [],
-  };
+function buildTreeNode(
+  ifcNode: any,
+  parentId: any = null,
+  collapsed: boolean = false
+): SpatialTreeNode {
+  if (ifcNode) {
+    const node: SpatialTreeNode = {
+      highlighted: false,
+      hidden: false,
+      collapsed: !!ifcNode.isGroup || collapsed,
+      isGroup: ifcNode.isGroup,
+      nodeId: ifcNode.expressID || `hz_group_${parentId}_${ifcNode.type}`,
+      label: ifcNode.Name?.value || ifcNode.type,
+      data: ifcNode,
+      children: [],
+    };
 
-  collapsed = node.collapsed;
-  for (let child of ifcNode.children) {
-    node.children.push(
-      buildTreeNode(child, ifcNode.expressID, collapsed)
-    );
+    collapsed = node.collapsed;
+    for (let child of ifcNode.children) {
+      node.children.push(buildTreeNode(child, ifcNode.expressID, collapsed));
+    }
+
+    return node;
+  } else {
+    return null;
   }
-
-  return node;
 }
 
 export { recurseTree, getAllIds, groupStoreyElements, buildTreeNode };

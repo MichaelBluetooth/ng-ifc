@@ -16,6 +16,7 @@ import { PropValueDisplayPipe } from './prop-value-display.pipe';
 import { IfcViewer2Component } from './ifc-viewer2/ifc-viewer2.component';
 import { ButtonBarComponent } from './button-bar/button-bar.component';
 import { PluralizeIFCTypePipe } from './pluralize-ifc-type.pipe';
+import { ProgressSpinnerComponent } from './progress-spinner/progress-spinner.component';
 
 @NgModule({
   declarations: [
@@ -33,7 +34,8 @@ import { PluralizeIFCTypePipe } from './pluralize-ifc-type.pipe';
     PropValueDisplayPipe,
     IfcViewer2Component,
     ButtonBarComponent,
-    PluralizeIFCTypePipe
+    PluralizeIFCTypePipe,
+    ProgressSpinnerComponent
   ],
   imports: [
     BrowserModule
