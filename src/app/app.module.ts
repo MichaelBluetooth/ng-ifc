@@ -15,6 +15,7 @@ import { IsUnitFieldPipe } from './is-unit-field.pipe';
 import { PropValueDisplayPipe } from './prop-value-display.pipe';
 import { IfcViewer2Component } from './ifc-viewer2/ifc-viewer2.component';
 import { ButtonBarComponent } from './button-bar/button-bar.component';
+import { PluralizeIFCTypePipe } from './pluralize-ifc-type.pipe';
 
 @NgModule({
   declarations: [
@@ -31,7 +32,8 @@ import { ButtonBarComponent } from './button-bar/button-bar.component';
     IsUnitFieldPipe,
     PropValueDisplayPipe,
     IfcViewer2Component,
-    ButtonBarComponent
+    ButtonBarComponent,
+    PluralizeIFCTypePipe
   ],
   imports: [
     BrowserModule

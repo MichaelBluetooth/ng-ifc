@@ -2,17 +2,21 @@
   <ng-template #spatialStructTmpl let-node="node">
     <li class="me-2">
       <div [id]="node.expressID" class="d-flex align-items-center" [class.selected]="isSelected(node)">
-        <div class="me-2">
+        <div class="">
           <button class="btn btn-sm" (click)="node.collapsed = !node.collapsed">
             <i *ngIf="!node.collapsed" class='bx bx-chevron-down'></i>
             <i *ngIf="node.collapsed" class='bx bx-chevron-right'></i>
           </button>
         </div>
 
-        <span class="clickable d-inline-block text-truncate" style="max-width: 200px;" (click)="select(node)"
+        <span class="clickable d-inline-block text-truncate ms-2" style="max-width: 200px;" (click)="select(node)"
           (contextmenu)="openContextMenu(node, $event)" [class.text-decoration-line-through]="isHidden(node)">
-          <span *ngIf="node?.Name?.value">{{node?.Name?.value}}</span>
-          <span *ngIf="!node?.Name?.value">{{node.type}}</span>
+          <ng-container *ngIf="node.isGroup">
+            <span>{{node.label | pluralizeIFCType}}</span>
+          </ng-container>
+          <ng-container *ngIf="!node.isGroup">
+            <span>{{node.label}}</span>
+          </ng-container>
         </span>
       </div>
 

@@ -59,7 +59,9 @@ export class ElementContextMenuComponent implements OnInit {
   getAllIds(): number[] {
     const ids: number[] = [];
     this.iterateChildren(this.ifcNode, (node: IFCNode) => {
-      ids.push(node.expressID);
+      if (node.expressID) {
+        ids.push(node.expressID);
+      }
     });
     return ids;
   }

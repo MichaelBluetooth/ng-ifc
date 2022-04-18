@@ -12,4 +12,7 @@ export interface IFCNode {
     // RefLongitude: IFCValue[];
     // RefElevation: IFCValue;
     // ObjectPlacement: IFCValue;
+
+    //Not an IFC prop!!
+    isGroup: boolean;
 }

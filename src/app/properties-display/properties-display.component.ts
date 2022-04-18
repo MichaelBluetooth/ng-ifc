@@ -15,7 +15,7 @@ export class PropertiesDisplayComponent implements OnInit {
 
   ngOnInit() {
     this.ifc.selectedIds$.subscribe(async (ids) => {
-      if (ids.length === 1) {
+      if (ids.length > 0) {
         const propData = await this.ifcData.getPropertyData([ids[0]]);
         this.propertyData = propData.propertyValues.map((pv: any) => {
           return {
@@ -42,15 +42,17 @@ export class PropertiesDisplayComponent implements OnInit {
     });
   }
 
-
   items: any[] = [];
-  addItem(name: string, value: any){
-    this.items = [{
-      name, value
-    }];
+  addItem(name: string, value: any) {
+    this.items = [
+      {
+        name,
+        value,
+      },
+    ];
   }
 
-  search(){
+  search() {
     // this.ifcSearchService.search(this.items);
   }
 }
