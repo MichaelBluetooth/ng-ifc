@@ -1,4 +1,5 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { IFCDataService } from '../ifc-data.service';
 import { IFCService } from '../viewer/ifc/ifc';
 import { WorldService } from '../viewer/world';
 
@@ -11,7 +12,7 @@ export class ButtonBarComponent implements OnInit {
 
   @ViewChild('fileUpload', { static: true }) uploadField: ElementRef;
 
-  constructor(private world: WorldService, private ifc: IFCService){}
+  constructor(private world: WorldService, private ifc: IFCService, private gridData: IFCDataService){}
 
   ngOnInit(): void {
   }
@@ -42,7 +43,7 @@ export class ButtonBarComponent implements OnInit {
   }
 
   generateGridData(){
-    // this.gridData.readSelected();
+    this.gridData.readSelected();
   }
 
   deselectAll(){
