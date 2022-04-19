@@ -1,4 +1,11 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { IFCDataService } from '../ifc-data.service';
 import { IFCService } from '../viewer/ifc/ifc';
 import { WorldService } from '../viewer/world';
@@ -6,15 +13,25 @@ import { WorldService } from '../viewer/world';
 @Component({
   selector: 'app-button-bar',
   templateUrl: './button-bar.component.html',
-  styleUrls: ['./button-bar.component.less']
+  styleUrls: ['./button-bar.component.less'],
 })
 export class ButtonBarComponent implements OnInit {
+  showOptions = false;
+  showLines: boolean = true;
 
   @ViewChild('fileUpload', { static: true }) uploadField: ElementRef;
 
-  constructor(private world: WorldService, private ifc: IFCService, private gridData: IFCDataService){}
+  constructor(
+    private world: WorldService,
+    private ifc: IFCService,
+    private gridData: IFCDataService,
+    private eRef: ElementRef
+  ) {}
 
   ngOnInit(): void {
+    this.ifc.showLines$.subscribe((show) => {
+      this.showLines = show;
+    });
   }
 
   upload() {
@@ -26,31 +43,42 @@ export class ButtonBarComponent implements OnInit {
     }
   }
 
-  reset(){
+  reset() {
     this.world.reset();
   }
 
-  hideSelected(){
+  hideSelected() {
     this.ifc.hideSelected();
   }
 
-  hideOthers(){
+  hideOthers() {
     this.ifc.hideOthers();
   }
 
-  showAll(){
+  showAll() {
     this.ifc.showAll();
   }
 
-  generateGridData(){
+  generateGridData() {
     this.gridData.readSelected();
   }
 
-  deselectAll(){
+  deselectAll() {
     this.ifc.highlightById([]);
   }
 
-  selectAll(){
+  selectAll() {
     this.ifc.highlightAllVisible();
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  onGlobalClick(event: any): void {
+    if (!this.eRef.nativeElement.contains(event.target)) {
+      this.showOptions = false;
+    }
+  }
+
+  setShowLines(evt) {
+    this.ifc.showLines(evt.target.checked);
   }
 }

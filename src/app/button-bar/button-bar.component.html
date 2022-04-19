@@ -15,7 +15,19 @@
           class='bx bxs-hide'></i> Hide Others</button>
       <button class="btn me-2" (click)="showAll()" title="Unhide all elements"><i class='bx bx-show'></i> Show
         All</button>
-      <button class="btn me-2" (click)="generateGridData()"><i class='bx bx-table'></i> Generate Grid Data</button>
+      <button class="btn me-2" (click)="generateGridData()" title="Download data for the selected elements"><i
+          class='bx bx-table'></i> Generate Grid Data</button>
+    </div>
+    <div>
+      <button class="btn me-2" (click)="showOptions = !showOptions"><i class='bx bx-cog'></i> Options</button>
+      <div class="options-panel card shadow-lg mt-1" *ngIf="showOptions">
+        <div class="card-body">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="showLines" [checked]="showLines" (change)="setShowLines($event)">
+            <label class="form-check-label" for="showLines">Show lines</label>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

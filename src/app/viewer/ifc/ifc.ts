@@ -1,17 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { IFCRootNode } from 'src/app/models/ifc-root-node';
-import { MeshLambertMaterial, Scene, Vector2 } from 'three';
+import { MeshLambertMaterial, Scene } from 'three';
 import { IFCLoader } from 'web-ifc-three';
 import { ParserProgress } from 'web-ifc-three/IFC/components/IFCParser';
-import { Subset } from 'web-ifc-three/IFC/components/subsets/SubsetManager';
 import { RaycasterHelper } from '../raycaster-helper';
 import { getAllIds } from './spatial-utils';
-import {
-  acceleratedRaycast,
-  computeBoundsTree,
-  disposeBoundsTree,
-} from 'three-mesh-bvh';
+import { SubSetManager } from './subset-manager';
 
 const WASM_PATH = 'assets/ifc/';
 const ALL_ELEMENTS_SUBSET_NAME = 'all_elements';
@@ -30,12 +25,13 @@ export class IFCService {
   private previousFileUrl: string = null;
   private scene: Scene;
   private raycaster: RaycasterHelper;
-  private hiddenElementsSubset: Subset = null;
+  private subsetManager: SubSetManager;
 
   private _hiddenIds = new BehaviorSubject<number[]>([]);
   private _selectedIds = new BehaviorSubject<number[]>([]);
   private _spatialStructure = new BehaviorSubject<IFCRootNode>(null);
   private _loading = new BehaviorSubject<number>(null);
+  private _showLines = new BehaviorSubject<boolean>(true);
 
   get hiddenIds$() {
     return this._hiddenIds.asObservable();
@@ -57,6 +53,10 @@ export class IFCService {
     return this._loading.asObservable();
   }
 
+  get showLines$() {
+    return this._showLines.asObservable();
+  }
+
   init(scene: Scene, raycaster: RaycasterHelper) {
     this.ifcLoader = new IFCLoader();
     // this.ifcLoader.ifcManager.useWebWorkers(true, `${WASM_PATH}IFCWorker.js`);
@@ -70,15 +70,26 @@ export class IFCService {
       const result = Math.trunc(percent);
       this._loading.next(result);
     });
+
+    this.subsetManager = new SubSetManager(
+      this.ifcLoader.ifcManager,
+      this.scene
+    );
   }
 
   async reset(reloadPrevious: boolean = false): Promise<void> {
     this.ifcLoader.ifcManager.dispose();
+    this.subsetManager.dispose();
 
     this.ifcLoader = null;
     this.ifcModels = [];
     this.ifcLoader = new IFCLoader();
     this.ifcLoader.ifcManager.setWasmPath(WASM_PATH);
+
+    this.subsetManager = new SubSetManager(
+      this.ifcLoader.ifcManager,
+      this.scene
+    );
 
     if (reloadPrevious) {
       this.loadUrl(this.previousFileUrl);
@@ -103,13 +114,11 @@ export class IFCService {
         .then((spatialStruct) => {
           this._spatialStructure.next(spatialStruct);
           const ids = getAllIds(spatialStruct);
-          this.ifcLoader.ifcManager.createSubset({
-            modelID: 0,
-            ids: ids,
-            scene: this.scene,
-            removePrevious: true,
-            customID: ALL_ELEMENTS_SUBSET_NAME,
-          });
+          this.subsetManager.createSubset(
+            ifcModel.modelID,
+            ids,
+            ALL_ELEMENTS_SUBSET_NAME
+          );
         });
     });
   }
@@ -168,7 +177,7 @@ export class IFCService {
     expressIDs = Array.from(new Set<number>(expressIDs)); //remove any dupes
     this._selectedIds.next(expressIDs);
 
-    this.ifcLoader.ifcManager.createSubset({
+    const subset = this.ifcLoader.ifcManager.createSubset({
       modelID: 0,
       ids: expressIDs,
       material: SELECT_MATERIAL,
@@ -186,52 +195,22 @@ export class IFCService {
   }
 
   hideElementsById(ids: number[]) {
-    if (this.hiddenElementsSubset) {
-      this.ifcLoader.ifcManager.removeSubset(
-        0,
-        null,
-        HIDDEN_ELEMENTS_SUBSET_NAME
-      );
-    }
-
-    let hiddenIds = this._hiddenIds.value;
-    hiddenIds = hiddenIds.concat(ids);
-    this._hiddenIds.next(hiddenIds);
-    ids.forEach((id) => {
-      // const ifcType = this.ifcLoader.ifcManager.getIfcType(0, id);
-      // this.ifcLoader.ifcManager.removeFromSubset(0, ids, ifcType);
-      this.ifcLoader.ifcManager.removeFromSubset(
-        0,
-        ids,
-        ALL_ELEMENTS_SUBSET_NAME
-      );
-    });
-
-    this.hiddenElementsSubset = this.ifcLoader.ifcManager.createSubset({
-      modelID: 0,
-      ids: ids,
-      scene: this.scene,
-      removePrevious: true,
-      customID: HIDDEN_ELEMENTS_SUBSET_NAME,
-    });
-
-    this.hiddenElementsSubset.removeFromParent();
+    this.subsetManager.hideElements(0, ids);
+    this._hiddenIds.next(ids.concat(this._hiddenIds.value));
     this._selectedIds.next([]);
     this.ifcLoader.ifcManager.removeSubset(0, SELECT_MATERIAL);
   }
 
   showElementsById(ids: number[]) {
-    if (this.hiddenElementsSubset) {
-      const newHiddenIds = this._hiddenIds.value;
-      ids.forEach((id) => {
-        const idx = newHiddenIds.indexOf(id);
-        newHiddenIds.splice(idx, 1);
-      });
+    const newHiddenIds = this._hiddenIds.value;
+    ids.forEach((id) => {
+      const idx = newHiddenIds.indexOf(id);
+      newHiddenIds.splice(idx, 1);
+    });
 
-      this.showAll();
-      this.hideElementsById(newHiddenIds);
-      this._hiddenIds.next(newHiddenIds);
-    }
+    this.showAll();
+    this.hideElementsById(newHiddenIds);
+    this._hiddenIds.next(newHiddenIds);
   }
 
   hideSelected() {
@@ -248,22 +227,10 @@ export class IFCService {
 
   async showAll() {
     //if there's a subset of individual elements, remove it
-    if (this.hiddenElementsSubset) {
-      this.ifcLoader.ifcManager.removeSubset(
-        0,
-        SELECT_MATERIAL,
-        HIDDEN_ELEMENTS_SUBSET_NAME
-      );
-    }
+    this.subsetManager.showHiddenElements(0);
 
     const ids = await this.getAllExpressIds();
-    this.ifcLoader.ifcManager.createSubset({
-      modelID: 0,
-      ids: ids,
-      scene: this.scene,
-      removePrevious: true,
-      customID: ALL_ELEMENTS_SUBSET_NAME,
-    });
+    this.subsetManager.createSubset(0, ids, ALL_ELEMENTS_SUBSET_NAME);
     this._hiddenIds.next([]);
   }
 
@@ -277,5 +244,14 @@ export class IFCService {
 
   getIFCType(expressID: number) {
     return this.ifcLoader.ifcManager.getIfcType(0, expressID);
+  }
+
+  showLines(show: boolean): void {
+    if (show) {
+      this.subsetManager.showLines();
+    } else {
+      this.subsetManager.hideLines();
+    }
+    this._showLines.next(show);
   }
 }
