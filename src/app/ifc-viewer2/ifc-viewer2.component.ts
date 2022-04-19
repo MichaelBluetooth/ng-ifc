@@ -29,6 +29,12 @@ export class IfcViewer2Component implements OnInit {
     this.ifc.highlight(event.clientX, event.clientY, this.isMulti);
   }
 
+
+  @HostListener('document:mousemove', ['$event']) 
+  onMouseMove(event) {
+    this.ifc.preselect(event.clientX, event.clientY);
+  }
+
   @HostListener('document:keydown', ['$event'])
   shiftdown(evt: any) {
     if (evt.key === 'Shift') {

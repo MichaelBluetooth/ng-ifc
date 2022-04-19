@@ -7,6 +7,11 @@ import { ParserProgress } from 'web-ifc-three/IFC/components/IFCParser';
 import { RaycasterHelper } from '../raycaster-helper';
 import { getAllIds } from './spatial-utils';
 import { SubSetManager } from './subset-manager';
+import {
+  acceleratedRaycast,
+  computeBoundsTree,
+  disposeBoundsTree,
+} from 'three-mesh-bvh';
 
 const WASM_PATH = 'assets/ifc/';
 const ALL_ELEMENTS_SUBSET_NAME = 'all_elements';
@@ -15,6 +20,12 @@ const SELECT_MATERIAL = new MeshLambertMaterial({
   transparent: true,
   opacity: 0.6,
   color: 0xff00ff,
+  depthTest: false,
+});
+const PRESELECT_MATERIAL = new MeshLambertMaterial({
+  transparent: true,
+  opacity: 0.6,
+  color: 0xff88ff,
   depthTest: false,
 });
 
@@ -85,6 +96,11 @@ export class IFCService {
     this.ifcModels = [];
     this.ifcLoader = new IFCLoader();
     this.ifcLoader.ifcManager.setWasmPath(WASM_PATH);
+    this.ifcLoader.ifcManager.setupThreeMeshBVH(
+      computeBoundsTree,
+      disposeBoundsTree,
+      acceleratedRaycast
+    );
 
     this.subsetManager = new SubSetManager(
       this.ifcLoader.ifcManager,
@@ -136,6 +152,41 @@ export class IFCService {
       this.ifcModels[0].modelID,
       false
     );
+  }
+
+  preselect(x: number, y: number) {
+    const rayCastedElements = this.raycaster.cast(x, y, this.ifcModels);
+
+    //For all elements in the intersected objects, find the first one that hasn't been hidden
+    let found: any = null;
+    for (const elementInSelection of rayCastedElements as any) {
+      const expressID = elementInSelection.object.getExpressId(
+        elementInSelection.object.geometry,
+        elementInSelection.faceIndex
+      );
+
+      if (this._hiddenIds.value.indexOf(expressID) === -1) {
+        found = elementInSelection;
+        break;
+      }
+    }
+
+    if (found) {
+      // Gets Express ID
+      const index = found.faceIndex;
+      const geometry = found.object.geometry;
+      const id = this.ifcLoader.ifcManager.getExpressId(geometry, index);
+
+      this.ifcLoader.ifcManager.createSubset({
+        modelID: 0,
+        ids: [id],
+        material: PRESELECT_MATERIAL,
+        scene: this.scene,
+        removePrevious: true,
+      });
+    } else {
+      this.ifcLoader.ifcManager.removeSubset(0, PRESELECT_MATERIAL);
+    }
   }
 
   highlight(x: number, y: number, isMulti: boolean) {
