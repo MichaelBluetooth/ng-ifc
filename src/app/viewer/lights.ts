@@ -1,15 +1,18 @@
-import { AmbientLight, DirectionalLight, Scene } from 'three';
+import { AmbientLight, Camera, DirectionalLight, Scene } from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
-function addLight(scene: Scene) {
+function addLight(scene: Scene, controls: OrbitControls, camera: Camera) {
   const lightColor = 0xffffff;
   const ambientLight = new AmbientLight(lightColor, 0.5);
   scene.add(ambientLight);
 
   const directionalLight = new DirectionalLight(lightColor, 1);
-  directionalLight.position.set(0, 10, 0);
-  directionalLight.target.position.set(-5, 0, 0);
   scene.add(directionalLight);
   scene.add(directionalLight.target);
+
+  controls.addEventListener('change', () => {
+    directionalLight.position.copy(camera.position);
+  });
 }
 
 export { addLight };

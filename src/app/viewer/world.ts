@@ -24,7 +24,7 @@ export class WorldService {
     scene = createScene();
     camera = createCamera();
     controls = createControls(camera, container);
-    addLight(scene);
+    addLight(scene, controls, camera);
 
     renderer = createRenderer(container);
     // container.append(renderer.domElement);
