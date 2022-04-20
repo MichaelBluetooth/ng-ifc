@@ -1,159 +1,71 @@
-import { IFCGroupNode } from 'src/app/models/ifc-group-node';
-import { IFCNode } from 'src/app/models/ifc-node';
-import { IFCRootNode } from 'src/app/models/ifc-root-node';
-import { buildTree, getAllIds, recurseTree } from './spatial-utils';
+import { SpatialTreeNode } from 'src/app/models/spatial-tree-node';
+import { findAllNodesInPath } from './spatial-utils';
 
-describe('Test: Spatial Utilities', () => {
-  it('groups elements under a storey ', () => {
-    const spatial: IFCRootNode = {
-      expressID: 1,
-      type: 'IFCPROJECT',
-      children: [
-        {
-          GlobalId: { type: 1, value: '' },
-          expressID: 2,
-          Name: { type: 1, value: '' },
-          type: 'IFCBUILDINGSTOREY',
-          children: [
-            {
-              GlobalId: { type: 1, value: '' },
-              expressID: 3,
-              Name: { type: 1, value: '' },
-              type: 'IFCWALL',
-              children: [],
-            },
-            {
-              GlobalId: { type: 1, value: '' },
-              expressID: 4,
-              Name: { type: 1, value: '' },
-              type: 'IFCROOF',
-              children: [],
-            },
-          ],
-        },
-      ],
-    };
+fdescribe('Test: Spatial Utilities', () => {
+  const tree: SpatialTreeNode = {
+    nodeId: '1',
+    children: [
+      {
+        nodeId: '2',
+        children: [
+          {
+            nodeId: '3',
+            children: [
+              {
+                nodeId: '4',
+              },
+              {
+                nodeId: '5',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        nodeId: '6',
+        children: [
+          {
+            nodeId: '7',
+            children: [
+              {
+                nodeId: '8',
+                children: [
+                  {
+                    nodeId: '9',
+                  },
+                  {
+                    nodeId: '10',
+                  },
+                ],
+              },
+              {
+                nodeId: '11',
+                children: [
+                  {
+                    nodeId: '12',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
 
-    const spatialWithGroups = buildTree(spatial);
-    expect(1).toBe(2);
-  });
-
-  it('groups elements under a storey ', () => {
-    const spatial: IFCRootNode = {
-      expressID: 1,
-      type: 'IFCPROJECT',
-      children: [
-        {
-          GlobalId: { type: 1, value: '' },
-          expressID: 2,
-          Name: { type: 1, value: '' },
-          type: 'IFCBUILDINGSTOREY',
-          children: [
-            {
-              GlobalId: { type: 1, value: '' },
-              expressID: 3,
-              Name: { type: 1, value: '' },
-              type: 'IFCWALL',
-              children: [],
-            },
-            {
-              GlobalId: { type: 1, value: '' },
-              expressID: 4,
-              Name: { type: 1, value: '' },
-              type: 'IFCROOF',
-              children: [],
-            },
-          ],
-        },
-      ],
-    };
-
-    const allElements: any[] = [];
-    recurseTree(spatial, (node: IFCNode, parent: IFCNode) => {
-      allElements.push({
-        parentId: parent?.expressID ?? null,
-        virtualId: node.expressID,
-        node: node,
-      });
+  [
+    {find: '1', expectedPath: ['1']},
+    {find: '6', expectedPath: ['1', '6']},
+    {find: '3', expectedPath: ['1','2','3']},
+    {find: '5', expectedPath: ['1','2', '3', '5']},
+    {find: '9', expectedPath: ['1','6','7', '8', '9']},
+    {find: 'not-in-tree', expectedPath: []}
+  ].forEach(testCase => {
+    it(`finds the correct path ${testCase.find}: ${testCase.expectedPath.toString()}`, () => {
+      const path = [];
+      const found = findAllNodesInPath(tree, (node) => node.nodeId === testCase.find, path);
+      expect(found).toEqual(testCase.expectedPath.length > 0);
+      expect(path.map((p) => p.nodeId)).toEqual(testCase.expectedPath);
     });
-
-    expect(allElements.length).toBe(4);
-    const storeys = allElements.filter(
-      (element) => element.node.type === 'IFCBUILDINGSTOREY'
-    );
-    expect(storeys.length).toBe(1);
-    storeys.forEach((storey) => {
-      const storeyGroups: any = {};
-
-      const storeyChildren = allElements.filter(
-        (el) => el.parentId === storey.virtualId
-      );
-      storeyChildren.forEach((storeyChild) => {
-        if (!storeyGroups[storeyChild.node.type]) {
-          storeyGroups[storeyChild.node.type] = [];
-        }
-
-        storeyChild.parentId = `${storey.virtualId}_${storeyChild.node.type}`;
-        storeyGroups[storeyChild.node.type].push(storeyChild);
-      });
-
-      const groupedChildren: any[] = [];
-      Object.keys(storeyGroups).forEach((groupName: string) => {
-        const group: IFCGroupNode = {
-          Name: { type: -1, value: groupName },
-          children: storeyGroups[groupName],
-          isGroup: true,
-        };
-        allElements.push({
-          parentId: storey.virtualId,
-          virtualId: `${storey.virtualId}_${groupName}`,
-          node: group,
-        });
-      });
-    });
-
-    allElements.forEach((el) => {
-      el.node.children = allElements
-        .filter((otherEl) => el.virtualId === otherEl.parentId)
-        .map((child) => child.node);
-    });
-
-    const rootIdx = allElements.findIndex((el) => !!el.parentId);
-    const root = allElements.splice(rootIdx, 1)[0];
-    expect(root).toBeDefined();
-  });
-
-  it('iterates all nodes in the tree', () => {
-    const spatial: IFCRootNode = {
-      expressID: 1,
-      type: 'something',
-      children: [
-        {
-          GlobalId: { type: 1, value: '' },
-          expressID: 2,
-          Name: { type: 1, value: '' },
-          type: 'something',
-          children: [],
-        },
-        {
-          GlobalId: { type: 1, value: '' },
-          expressID: 3,
-          Name: { type: 1, value: '' },
-          type: 'something',
-          children: [
-            {
-              GlobalId: { type: 1, value: '' },
-              expressID: 4,
-              Name: { type: 1, value: '' },
-              type: 'something',
-              children: [],
-            },
-          ],
-        },
-      ],
-    };
-
-    const ids: number[] = getAllIds(spatial);
-    expect(ids).toEqual([1, 2, 3, 4]);
-  });
+  });  
 });

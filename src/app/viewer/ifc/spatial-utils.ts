@@ -102,4 +102,38 @@ function buildTreeNode(
   }
 }
 
-export { recurseTree, getAllIds, groupStoreyElements, buildTreeNode };
+function findAllNodesInPath(
+  currentNode: SpatialTreeNode,
+  isMatch: Function,
+  path: SpatialTreeNode[] = [],  
+) {
+  path.push(currentNode);
+  if (isMatch(currentNode)) {
+    return true;
+  }
+
+  if (currentNode.children) {
+    for (let child of currentNode.children) {
+      const found = findAllNodesInPath(child, isMatch, path);
+      if (found) {
+        return true;
+      } else {
+        path.pop();
+      }
+    }
+  }
+
+  if(path.length === 1){
+    path.pop();
+  }
+
+  return false;
+}
+
+export {
+  recurseTree,
+  getAllIds,
+  groupStoreyElements,
+  buildTreeNode,
+  findAllNodesInPath,
+};

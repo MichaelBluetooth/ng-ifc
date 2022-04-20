@@ -8,6 +8,7 @@ import {
   groupStoreyElements,
   buildTreeNode,
   recurseTree,
+  findAllNodesInPath,
 } from '../viewer/ifc/spatial-utils';
 
 @Component({
@@ -30,9 +31,20 @@ export class SpatialTreeComponent implements OnInit {
 
   ngOnInit(): void {
     this.ifc.selectedIds$.subscribe((ids) => {
-      if (ids.length > 0 && !this.selectedIds.has(ids[0])) {
-        document.getElementById(ids[0].toString())?.scrollIntoView();
+
+      if (ids.length > 0 && !this.selectedIds.has(ids[0])) {        
+        const firstSelectedId = ids[0];
+        const path = [];
+        findAllNodesInPath(this.tree, (node) => node.data.expressID === firstSelectedId, path);
+        path.forEach(node => {
+          node.collapsed = false;
+        });
+
+        setTimeout(() => {
+          document.getElementById(firstSelectedId.toString())?.scrollIntoView();
+        }, 50);
       }
+
       this.selectedIds = new Set(ids);
 
       if (!this.skip) {
@@ -96,6 +108,20 @@ export class SpatialTreeComponent implements OnInit {
     }
 
     return ids;
+  }
+
+  forAllNodesInPath(
+    currentNode: SpatialTreeNode,
+    nodeId: string,
+    callBack: Function,
+    path: SpatialTreeNode[]
+  ) {
+    path.push(currentNode);
+    if (currentNode.nodeId === nodeId) {
+      path.forEach((item) => {
+        callBack(item);
+      });
+    }
   }
 
   openContextMenu(node: SpatialTreeNode, e: MouseEvent) {

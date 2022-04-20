@@ -1,7 +1,7 @@
 <div class="d-flex flex-column justify-content-between overflow-auto h-100 rounded-0">
   <ng-template #spatialStructTmpl let-node="node">
     <li class="me-2">
-      <div [id]="node.expressID" class="d-flex align-items-center" [class.selected]="isSelected(node)">
+      <div [id]="node.nodeId" class="d-flex align-items-center" [class.selected]="isSelected(node)">
         <div class="">
           <button class="btn btn-sm" (click)="node.collapsed = !node.collapsed">
             <i *ngIf="!node.collapsed" class='bx bx-chevron-down'></i>
