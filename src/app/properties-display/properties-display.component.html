@@ -4,18 +4,16 @@
   <button class="btn btn-secondary me-2" (click)="collapseAll()"><i class='bx bx-collapse'></i> Collapse All</button>
 </div>
 <div class="row p-2" *ngFor="let selectedItem of propertyData; let itemIdx = index">
-  <div class="mb-2 d-flex justify-content-between align-items-center">
-    <div class="fw-bold">
-      {{selectedItem.values.name || 'NO_NAME_SPECIFIED'}}
-    </div>
-    <div>
-      <button class="btn btn-sm btn-light" (click)="selectedItem.collapsed = !selectedItem.collapsed">
-        <i *ngIf="selectedItem.collapsed" class='bx bx-chevron-left'></i>
-        <i *ngIf="!selectedItem.collapsed" class='bx bx-chevron-down'></i>
-      </button>
-    </div>
-  </div>
   <ng-container *ngIf="!selectedItem.collapsed">
+    <div class="row d-flex align-items-center">
+      <div class="col-md-1">
+        <input type="checkbox">
+      </div>
+      <div class="col-md-5 text-muted">name</div>
+      <div class="col-md-6">
+        {{selectedItem.values.name || 'NO_NAME_SPECIFIED'}}
+      </div>
+    </div>
     <ng-container *ngFor="let propName of propertyNames; let propNameIdx = index">
       <ng-container *ngIf="!(propName | isUnitField)">
         <div class="row d-flex align-items-center" *ngIf="selectedItem.values[propName]">
